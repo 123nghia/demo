@@ -453,18 +453,22 @@ body.in-gallery .header-main::after {
 }
 
 .site-logo {
-  display: block;
+  display: flex;
+  align-items: center;
+  line-height: 0;
   justify-self: center;
   z-index: 2;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .site-logo img {
-  width: clamp(72px, 8vw, 96px);
-  height: auto;
+  width: auto;
+  height: clamp(46px, 5.2vw, 62px);
+  max-height: 62px;
   object-fit: contain;
+  object-position: center;
   filter: none;
-  transition: width 0.3s ease;
+  transition: height 0.3s ease, max-height 0.3s ease;
 }
 
 body.scrolled .site-logo {
@@ -474,7 +478,8 @@ body.scrolled .site-logo {
 }
 
 body.scrolled .site-logo img {
-  width: clamp(66px, 7.2vw, 88px);
+  height: clamp(42px, 4.8vw, 56px);
+  max-height: 56px;
 }
 
 body.in-gallery .site-logo {
@@ -1268,7 +1273,8 @@ body.contact-page .site-logo {
 }
 
 body.contact-page .site-logo img {
-  width: clamp(76px, 10vw, 102px);
+  height: clamp(42px, 5vw, 58px);
+  max-height: 58px;
 }
 
 body.contact-page .header-nav {
@@ -1731,11 +1737,13 @@ body.about-us-page {
 }
 
 body.home-page .site-logo img {
-  width: clamp(74px, 8.2vw, 94px);
+  height: clamp(46px, 5.2vw, 60px);
+  max-height: 60px;
 }
 
 body.about-us-page .site-logo img {
-  width: clamp(74px, 8.2vw, 94px);
+  height: clamp(46px, 5.2vw, 60px);
+  max-height: 60px;
 }
 
 .about-us-page .about-main {
@@ -3226,12 +3234,16 @@ body.in-footer .section-dots {
   .site-logo img,
   body.scrolled .site-logo img,
   body.contact-page .site-logo img {
-    width: 84px;
+    width: auto;
+    height: 50px;
+    max-height: 50px;
   }
 
   body.home-page .site-logo img,
   body.home-page.scrolled .site-logo img {
-    width: 78px;
+    width: auto;
+    height: 46px;
+    max-height: 46px;
   }
 
   .header-nav,

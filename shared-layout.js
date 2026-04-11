@@ -51,7 +51,7 @@
       if (link.homeIcon) {
         return `
       <a class="header-nav__link header-nav__link--home" href="${link.href}" data-page-key="${link.key}">
-        <img src="https://rhinelux.com/wp-content/uploads/2024/02/icon-home.webp" alt="">
+        <img src="${prefix}assets/icons/icon-home.webp" alt="">
         <span>${link.label}</span>
       </a>`;
       }
@@ -158,19 +158,19 @@
 
       <div class="footer-grid">
         <article class="footer-item">
-          <img src="https://rhinelux.com/wp-content/uploads/2024/02/icon-footer-1.webp" alt="">
+          <img src="${prefix}assets/icons/icon-footer-1.webp" alt="">
           <p>${contact.address}</p>
         </article>
         <article class="footer-item">
-          <img src="https://rhinelux.com/wp-content/uploads/2024/02/icon-footer-2.webp" alt="">
+          <img src="${prefix}assets/icons/icon-footer-2.webp" alt="">
           <p><a href="${contact.websiteHref}" target="_blank" rel="noreferrer noopener">${contact.websiteLabel}</a></p>
         </article>
         <article class="footer-item">
-          <img src="https://rhinelux.com/wp-content/uploads/2024/02/icon-footer-3.webp" alt="">
+          <img src="${prefix}assets/icons/icon-footer-3.webp" alt="">
           <p><a href="${contact.emailHref}">${contact.email}</a></p>
         </article>
         <article class="footer-item">
-          <img src="https://rhinelux.com/wp-content/uploads/2024/02/icon-footer-4.webp" alt="">
+          <img src="${prefix}assets/icons/icon-footer-4.webp" alt="">
           <p><a href="${contact.phoneHref}">${contact.phoneDisplay}</a></p>
         </article>
       </div>
