@@ -5,7 +5,7 @@
   const prefix = body.dataset.rootPrefix || "";
   const page = body.dataset.page || "";
   const isHomePage = page === "home";
-  const sharedLogo = `${prefix}logohome.png`;
+  const sharedLogo = `${prefix}logoMenuRight1.png`;
   const sharedFooterLogo = `${prefix}logofooter.png`;
   const contact = {
     phoneDisplay: "0988991635",

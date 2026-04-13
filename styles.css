@@ -24,6 +24,9 @@
   --text: #fff;
   --text-dim: rgba(255, 255, 255, 0.76);
   --text-dark: #121212;
+  --font-body: "Open Sans", sans-serif;
+  --font-display: "SVN Aptima", "Marcellus", serif;
+  --font-menu: "SVN Aptima", "Marcellus", serif;
   --line-gradient: linear-gradient(95.19deg, #d28be3 0%, #f3dbcb 16.15%, #91b2e7 41.15%, #e5dfcb 64.58%, #b9e9d1 81.77%, #d891df 100%);
   --border-dark: rgba(255, 255, 255, 0.1);
   --shadow-card: 0 22px 60px rgba(0, 0, 0, 0.35);
@@ -48,7 +51,7 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Open Sans", sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   overflow: hidden;
 }
@@ -96,7 +99,7 @@ button {
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
   transition: opacity 0.34s cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 0.34s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 69;
+  z-index: 80;
 }
 
 .overlay.is-visible {
@@ -110,9 +113,9 @@ button {
   position: fixed;
   top: 0;
   right: 0;
-  width: min(90vw, 430px);
+  width: min(90vw, 450px);
   height: 100vh;
-  padding: 0 28px 36px;
+  padding: 0 18px 38px;
   background: #fff;
   color: #1d1406;
   z-index: 80;
@@ -138,15 +141,18 @@ body.menu-open .mobile-menu {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 -28px;
-  padding: 22px 18px 16px;
-  background: url("assets/hovi/gallery/hovi-068.png") center center / cover no-repeat;
+  margin: 0 -18px;
+  padding: 10px 18px 18px;
+  background-color: black;
   position: relative;
   opacity: 0;
   transform: translateY(-8px);
   transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
 }
 
+.mobile-menu__header img {
+  width: 60px;
+}
 .mobile-menu__header::after {
   content: "";
   position: absolute;
@@ -185,19 +191,21 @@ body.menu-open .mobile-menu {
 
 .mobile-menu__nav {
   display: grid;
-  padding-top: 6px;
+  padding-top: 10px;
   opacity: 0;
   transform: translateX(10px);
   transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
 }
 
 .mobile-menu__link {
-  padding: 24px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.34);
-  font-family: "SVN Aptima", serif;
-  font-size: clamp(1.7rem, 2vw, 2.1rem);
-  line-height: 1.06;
-  color: rgba(24, 17, 10, 0.92);
+  padding: 15px 0 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.28);
+  font-family: var(--font-menu);
+  font-size: clamp(1.42rem, 1.75vw, 1.82rem);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  color: rgba(28, 21, 15, 0.92);
   background-color: transparent;
   opacity: 0;
   transform: translateX(24px);
@@ -206,8 +214,8 @@ body.menu-open .mobile-menu {
 
 .mobile-menu__link:hover,
 .mobile-menu__link:focus-visible {
-  color: rgba(16, 16, 16, 0.96);
-  background: rgba(0, 0, 0, 0.04);
+  color: rgba(18, 18, 18, 0.98);
+  background: transparent;
   -webkit-text-fill-color: currentColor;
 }
 
@@ -699,9 +707,11 @@ body.in-gallery .header-nav {
 
 .header-nav__link {
   color: rgba(255, 255, 255, 0.86);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1;
+  font-family: var(--font-menu);
+  font-size: clamp(0.98rem, 1vw, 1.08rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
 }
 
 .header-nav__link:hover {
@@ -1169,9 +1179,11 @@ body.in-gallery .header-nav {
 
 .about-title {
   margin: 0 0 12px;
-  font-family: "Marcellus", serif;
+  font-family: var(--font-display);
   font-size: clamp(2.2rem, 3.6vw, 3rem);
   font-weight: 400;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
 }
 
 .about-desc {
@@ -1356,10 +1368,12 @@ body.contact-page .header-actions--right .menu-trigger {
 .contact-page__title {
   margin: 0 0 16px;
   max-width: 10ch;
-  font-family: "SVN Aptima", serif;
+  font-family: var(--font-display);
   font-size: clamp(2.45rem, 4.2vw, 4rem);
   font-weight: 400;
+  letter-spacing: 0.01em;
   line-height: 0.92;
+  text-wrap: balance;
 }
 
 .contact-page__lead,
@@ -1636,11 +1650,13 @@ body.project-category-page {
 
 .project-category-page .category-title {
   margin: 0;
-  font-family: "Open Sans", sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(1.6rem, 2.1vw, 2.25rem);
   line-height: 1.24;
   font-weight: 400;
+  letter-spacing: 0.015em;
   text-transform: uppercase;
+  text-wrap: balance;
   text-align: center;
   flex: 0 1 auto;
 }
@@ -2150,10 +2166,12 @@ body.about-us-page .site-logo img {
 .detail-title {
   margin: 0;
   max-width: none;
-  font-family: "Open Sans", sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(1.55rem, 1.75vw, 2.05rem);
   font-weight: 400;
+  letter-spacing: 0.01em;
   line-height: 1.2;
+  text-wrap: balance;
 }
 
 .detail-lead {
@@ -3217,18 +3235,18 @@ body.in-footer .section-dots {
   }
 
   .mobile-menu {
-    width: min(92vw, 410px);
-    padding-inline: 20px;
+    width: min(92vw, 450px);
+    padding-inline: 18px;
   }
 
   .mobile-menu__header {
-    margin-inline: -20px;
-    padding: 20px 16px 15px;
+    margin-inline: -18px;
+    padding: 20px 18px 16px;
   }
 
   .mobile-menu__link {
-    padding: 18px 0;
-    font-size: clamp(1.35rem, 7vw, 1.85rem);
+    padding: 22px 0 18px;
+    font-size: clamp(1.16rem, 5.2vw, 1.42rem);
   }
 
   .site-logo img,
