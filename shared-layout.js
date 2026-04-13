@@ -26,14 +26,12 @@
   const mobileMenuLinks = [
     { key: "home", label: "Trang chủ", href: homeSection("hero") },
     { key: "about", label: "Giới thiệu", href: pageLink("about-us/") },
-    { key: "project", label: "M07-L14, ĐTM Dương Nội", href: pageLink("biet-thu-don-lap-m07-l14-dtm-duong-noi/") },
     { key: "oceanpark", label: "Vinhomes Ocean Park", href: pageLink("thiet-ke-biet-thu-vinhomes-ocean-park/") },
     { key: "contact", label: "Liên hệ", href: pageLink("lien-he/") },
   ];
 
   const desktopNavLinks = [
     { key: "home", label: "Trang chủ", href: homeSection("hero"), homeIcon: true },
-    { key: "project", label: "M07-L14, ĐTM Dương Nội", href: pageLink("biet-thu-don-lap-m07-l14-dtm-duong-noi/") },
     { key: "oceanpark", label: "Vinhomes Ocean Park", href: pageLink("thiet-ke-biet-thu-vinhomes-ocean-park/") },
     { key: "about", label: "Giới thiệu", href: pageLink("about-us/") },
     { key: "contact", label: "Liên hệ", href: pageLink("lien-he/") },

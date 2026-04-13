@@ -21,10 +21,8 @@ const detailGalleryImages = [...document.querySelectorAll(".detail-gallery__item
 
 let slideIndex = 0;
 let sliderTimer;
-let wheelLock = false;
 let overlayHideTimer;
 let menuOpeningTimer;
-let hoverRedirectTimer;
 
 function syncOverlay() {
   if (!overlay) return;
@@ -159,23 +157,28 @@ function smoothAnchorLinks() {
 
 function bindHoverRedirects() {
   if (!hoverRedirectCards.length) return;
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
   hoverRedirectCards.forEach((card) => {
     card.style.cursor = "pointer";
+    card.setAttribute("role", "link");
+    card.setAttribute("tabindex", "0");
 
-    card.addEventListener("mouseenter", () => {
+    const redirectToTarget = () => {
       const target = card.getAttribute("data-hover-redirect");
       if (!target) return;
+      window.location.href = target;
+    };
 
-      window.clearTimeout(hoverRedirectTimer);
-      hoverRedirectTimer = window.setTimeout(() => {
-        window.location.href = target;
-      }, 120);
+    card.addEventListener("click", (event) => {
+      const interactiveTarget = event.target.closest("a, button, input, textarea, select, label");
+      if (interactiveTarget) return;
+      redirectToTarget();
     });
 
-    card.addEventListener("mouseleave", () => {
-      window.clearTimeout(hoverRedirectTimer);
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      redirectToTarget();
     });
   });
 }
@@ -332,42 +335,3 @@ initDetailGalleryLightbox();
 goToSlide(0);
 startSlider();
 syncOverlay();
-
-if (scrollRoot) {
-  scrollRoot.addEventListener(
-    "wheel",
-    (event) => {
-      if (window.innerWidth <= 820) return;
-      if (wheelLock) return;
-
-      const delta = event.deltaY;
-      if (Math.abs(delta) < 10) return;
-
-      event.preventDefault();
-      wheelLock = true;
-
-      const currentTop = scrollRoot.scrollTop;
-      const sorted = sections
-        .map((section) => ({ section, top: section.offsetTop }))
-        .sort((a, b) => a.top - b.top);
-
-      const currentIndex = sorted.findIndex((item, index) => {
-        const next = sorted[index + 1];
-        return next ? currentTop < next.top - 2 : true;
-      });
-
-      const nextIndex = delta > 0 ? Math.min(currentIndex + 1, sorted.length - 1) : Math.max(currentIndex - 1, 0);
-      const targetTop = sorted[nextIndex]?.top ?? 0;
-
-      scrollRoot.scrollTo({
-        top: targetTop,
-        behavior: "smooth",
-      });
-
-      window.setTimeout(() => {
-        wheelLock = false;
-      }, 520);
-    },
-    { passive: false },
-  );
-}
