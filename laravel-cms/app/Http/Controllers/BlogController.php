@@ -11,6 +11,11 @@ class BlogController extends Controller
     {
         $blogs = Blog::query()
             ->published()
+            ->with([
+                'project' => function ($query) {
+                    $query->select(['id', 'name', 'slug']);
+                },
+            ])
             ->orderByDesc('published_at')
             ->orderBy('sort_order')
             ->orderByDesc('id')
@@ -29,15 +34,28 @@ class BlogController extends Controller
         $blog = Blog::query()
             ->published()
             ->where('slug', trim($slug))
+            ->with([
+                'project' => function ($query) {
+                    $query->select(['id', 'name', 'slug']);
+                },
+            ])
             ->firstOrFail();
 
         $relatedBlogs = Blog::query()
             ->published()
             ->where('id', '!=', $blog->id)
+            ->when(!is_null($blog->project_id), function ($query) use ($blog) {
+                $query->orderByRaw('CASE WHEN project_id = ? THEN 0 ELSE 1 END', [$blog->project_id]);
+            })
+            ->with([
+                'project' => function ($query) {
+                    $query->select(['id', 'name', 'slug']);
+                },
+            ])
             ->orderByDesc('published_at')
             ->orderBy('sort_order')
             ->orderByDesc('id')
-            ->limit(3)
+            ->limit(4)
             ->get();
 
         return view('site.blog.show', [

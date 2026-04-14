@@ -19,6 +19,7 @@
                     <tr>
                         <th>#</th>
                         <th>Tiêu đề</th>
+                        <th>Dự án</th>
                         <th>Slug</th>
                         <th>Ngày đăng</th>
                         <th>Hiển thị</th>
@@ -34,6 +35,13 @@
                                 <strong>{{ $blog->title }}</strong>
                                 @if (!empty($blog->excerpt))
                                     <div class="small text-muted">{{ \Illuminate\Support\Str::limit($blog->excerpt, 90) }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($blog->project)
+                                    <span class="badge text-bg-info">{{ $blog->project->name }}</span>
+                                @else
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
                             <td><code>/blog/{{ $blog->slug }}</code></td>
@@ -60,7 +68,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Chưa có bài blog nào.</td>
+                            <td colspan="8" class="text-center py-4 text-muted">Chưa có bài blog nào.</td>
                         </tr>
                     @endforelse
                 </tbody>

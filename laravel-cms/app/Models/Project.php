@@ -46,6 +46,11 @@ class Project extends Model
         return $this->hasMany(ProjectVideo::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    public function publicBlogs()
+    {
+        return $this->hasMany(Blog::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function scopePublished($query)
     {
         return $query->where('is_published', true);

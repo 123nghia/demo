@@ -12,6 +12,8 @@
         $details = $project->detailPages ?? collect();
         $blogs = $project->blogs ?? collect();
         $videos = $project->videos ?? collect();
+        $rawProjectIntro = (string) ($project->intro ?? '');
+        $projectIntroHasHtml = strip_tags($rawProjectIntro) !== $rawProjectIntro;
 
         $resolveImage = function ($raw, $fallback = '') {
             $value = trim((string) $raw);
@@ -50,7 +52,9 @@
 
         @if (!empty($project->intro))
             <section class="category-section pt-2">
-                <div class="category-intro">{!! nl2br(e($project->intro)) !!}</div>
+                <div class="category-intro editor-render-content">
+                    {!! $projectIntroHasHtml ? $rawProjectIntro : nl2br(e($rawProjectIntro)) !!}
+                </div>
             </section>
         @endif
 

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AboutUsContentController;
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EditorUploadController;
 use App\Http\Controllers\Admin\HomeContentController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\PageController;
@@ -43,6 +44,7 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::put('about-us-content', [AboutUsContentController::class, 'update'])->name('about-content.update');
     Route::resource('menu-items', MenuItemController::class)->except(['show']);
     Route::resource('blogs', BlogController::class)->except(['show']);
+    Route::post('editor/upload-image', [EditorUploadController::class, 'store'])->name('editor.upload-image');
     Route::resource('projects', ProjectController::class)->except(['show']);
     Route::resource('projects.detail-pages', ProjectDetailPageController::class)
         ->parameters(['detail-pages' => 'detailPage'])

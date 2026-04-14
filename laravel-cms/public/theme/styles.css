@@ -2699,6 +2699,53 @@ body.home-image-open {
   line-height: 1.12;
 }
 
+.editor-render-content {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.editor-render-content,
+.editor-render-content * {
+  font-family: "Open Sans", Arial, sans-serif;
+}
+
+.editor-render-content h1,
+.editor-render-content h2,
+.editor-render-content h3,
+.editor-render-content h4,
+.editor-render-content h5,
+.editor-render-content h6 {
+  font-family: "SVN Aptima", "Open Sans", serif;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.26;
+  margin: 1.2rem 0 0.8rem;
+}
+
+.editor-render-content p,
+.editor-render-content li,
+.editor-render-content blockquote,
+.editor-render-content pre,
+.editor-render-content td,
+.editor-render-content th {
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1.82;
+  font-size: 1rem;
+}
+
+.editor-render-content img {
+  display: block;
+  max-width: min(100%, 920px);
+  height: auto;
+  margin: 16px auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.editor-render-content a {
+  color: #f1b45a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .footer-section {
   padding: 0;
   display: grid;

@@ -1,6 +1,7 @@
 @php
     /** @var \App\Models\Blog|null $blog */
     $blog = $blog ?? null;
+    $projects = $projects ?? collect();
 @endphp
 
 <div class="row g-3">
@@ -23,6 +24,18 @@
     </div>
 
     <div class="col-md-6">
+        <label class="form-label" for="project_id">Thuộc dự án (tùy chọn)</label>
+        <select class="form-select" id="project_id" name="project_id">
+            <option value="">-- Không gán dự án --</option>
+            @foreach ($projects as $project)
+                <option value="{{ $project->id }}" @selected((string) old('project_id', $blog->project_id ?? '') === (string) $project->id)>
+                    {{ $project->name }} (/{{ $project->slug }})
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="col-md-6">
         <label class="form-label" for="thumbnail_image">Ảnh thumbnail</label>
         <input class="form-control" id="thumbnail_image" name="thumbnail_image" type="text"
             value="{{ old('thumbnail_image', $blog->thumbnail_image ?? '') }}"
@@ -42,7 +55,7 @@
 
     <div class="col-12">
         <label class="form-label" for="content">Nội dung chi tiết blog</label>
-        <textarea class="form-control" id="content" name="content" rows="10">{{ old('content', $blog->content ?? '') }}</textarea>
+        <textarea class="form-control js-rich-editor" id="content" name="content" rows="10">{{ old('content', $blog->content ?? '') }}</textarea>
     </div>
 
     <div class="col-md-6">

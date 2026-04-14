@@ -10,6 +10,8 @@
     @php
         $galleryImages = collect($detailPage->gallery_images ?? [])->values();
         $relatedDetails = collect($project->detailPages ?? [])->where('id', '!=', $detailPage->id)->take(6)->values();
+        $rawDetailContent = (string) ($detailPage->content ?? '');
+        $detailContentHasHtml = strip_tags($rawDetailContent) !== $rawDetailContent;
 
         $resolveImage = function ($raw, $fallback = '') {
             $value = trim((string) $raw);
@@ -48,7 +50,9 @@
 
         @if (!empty($detailPage->content))
             <section class="category-section pt-2">
-                <div class="category-intro">{!! nl2br(e($detailPage->content)) !!}</div>
+                <div class="category-intro editor-render-content">
+                    {!! $detailContentHasHtml ? $rawDetailContent : nl2br(e($rawDetailContent)) !!}
+                </div>
             </section>
         @endif
 

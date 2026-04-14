@@ -190,7 +190,7 @@
 
     <div class="col-12">
         <label class="form-label" for="content">Nội dung chi tiết</label>
-        <textarea class="form-control" id="content" name="content" rows="8">{{ old('content', $detailPage->content ?? '') }}</textarea>
+        <textarea class="form-control js-rich-editor" id="content" name="content" rows="8">{{ old('content', $detailPage->content ?? '') }}</textarea>
     </div>
 </div>
 

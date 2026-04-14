@@ -396,6 +396,10 @@ function initContactFormEnhancements() {
     if (form.dataset.enhancedSubmit === "1") return;
     form.dataset.enhancedSubmit = "1";
 
+    if (typeof window.fetch !== "function" || typeof window.FormData !== "function") {
+      return;
+    }
+
     const submitButton = form.querySelector(".contact-submit") || form.querySelector('button[type="submit"]');
     if (!submitButton) return;
 
@@ -454,7 +458,7 @@ function initContactFormEnhancements() {
       submitButton.textContent = submitButton.dataset.defaultLabel || "Gửi";
     };
 
-    form.addEventListener("submit", async (event) => {
+    const handleSubmit = async (event) => {
       event.preventDefault();
 
       showFeedback("");
@@ -471,7 +475,14 @@ function initContactFormEnhancements() {
           body: new FormData(form),
         });
 
-        const payload = await response.json().catch(() => ({}));
+        const contentType = (response.headers.get("content-type") || "").toLowerCase();
+        const isJsonResponse = contentType.includes("application/json");
+        const payload = isJsonResponse ? await response.json().catch(() => ({})) : {};
+
+        if (!isJsonResponse && response.redirected) {
+          window.location.href = response.url;
+          return;
+        }
 
         if (!response.ok) {
           if (response.status === 422) {
@@ -489,11 +500,19 @@ function initContactFormEnhancements() {
           form.classList.remove("is-success");
         }, 1400);
       } catch (error) {
+        if (error instanceof TypeError) {
+          form.removeEventListener("submit", handleSubmit);
+          form.submit();
+          return;
+        }
+
         showFeedback(error.message || "Không thể gửi thông tin lúc này. Vui lòng thử lại sau.", "error");
       } finally {
         setSubmittingState(false);
       }
-    });
+    };
+
+    form.addEventListener("submit", handleSubmit);
   });
 }
 

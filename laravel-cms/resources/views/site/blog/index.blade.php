@@ -27,6 +27,21 @@
             color: rgba(255, 255, 255, .78);
             font-size: .96rem;
         }
+
+        .blog-card__project {
+            margin: -6px 14px 12px;
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            background: rgba(0, 0, 0, 0.28);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: .74rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
     </style>
 @endpush
 
@@ -66,6 +81,9 @@
                         <p class="blog-card__meta">
                             {{ optional($blog->published_at)->format('d/m/Y') ?: optional($blog->created_at)->format('d/m/Y') }}
                         </p>
+                        @if ($blog->project)
+                            <p class="blog-card__project">Dự án: {{ $blog->project->name }}</p>
+                        @endif
                         @if (!empty($blog->excerpt))
                             <p class="blog-card__excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt, 130) }}</p>
                         @endif

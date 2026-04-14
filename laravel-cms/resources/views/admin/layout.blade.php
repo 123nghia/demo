@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'HOVI CMS')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -213,6 +214,93 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var richEditorSelector = 'textarea.js-rich-editor';
+            var hasRichEditorField = document.querySelector(richEditorSelector);
+
+            if (!hasRichEditorField || typeof window.tinymce === 'undefined') {
+                return;
+            }
+
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            var uploadUrl = @json(route('admin.editor.upload-image'));
+
+            tinymce.init({
+                selector: richEditorSelector,
+                height: 420,
+                menubar: 'file edit view insert format tools table help',
+                branding: false,
+                promotion: false,
+                plugins: 'advlist autolink lists link image table code fullscreen preview wordcount charmap',
+                toolbar: 'undo redo | styles fontsize | bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code fullscreen preview',
+                toolbar_mode: 'sliding',
+                fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px',
+                block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Blockquote=blockquote',
+                image_title: true,
+                image_caption: true,
+                relative_urls: false,
+                remove_script_host: false,
+                convert_urls: false,
+                content_style: `
+                    body {
+                        font-family: 'Open Sans', Arial, sans-serif;
+                        font-size: 16px;
+                        line-height: 1.75;
+                        color: #111827;
+                    }
+
+                    img {
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                        margin: 14px auto;
+                    }
+                `,
+                images_upload_handler: function(blobInfo, progress) {
+                    return new Promise(function(resolve, reject) {
+                        var formData = new FormData();
+                        formData.append('image', blobInfo.blob(), blobInfo.filename());
+                        formData.append('_token', csrfToken);
+
+                        fetch(uploadUrl, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                            })
+                            .then(function(response) {
+                                return response.json().then(function(payload) {
+                                    return {
+                                        ok: response.ok,
+                                        status: response.status,
+                                        payload: payload,
+                                    };
+                                });
+                            })
+                            .then(function(result) {
+                                if (!result.ok || !result.payload || !result.payload.location) {
+                                    reject((result.payload && result.payload.message) || 'Upload ảnh thất bại.');
+                                    return;
+                                }
+
+                                resolve(result.payload.location);
+                            })
+                            .catch(function() {
+                                reject('Không thể tải ảnh lên. Vui lòng kiểm tra kết nối và thử lại.');
+                            });
+                    });
+                },
+                setup: function(editor) {
+                    editor.on('change input undo redo', function() {
+                        editor.save();
+                    });
+                },
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 

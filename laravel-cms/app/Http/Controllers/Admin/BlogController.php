@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
@@ -11,6 +12,11 @@ class BlogController extends Controller
     public function index()
     {
         $blogs = Blog::query()
+            ->with([
+                'project' => function ($query) {
+                    $query->select(['id', 'name', 'slug']);
+                },
+            ])
             ->orderByDesc('published_at')
             ->orderBy('sort_order')
             ->orderByDesc('id')
@@ -21,7 +27,9 @@ class BlogController extends Controller
 
     public function create()
     {
-        return view('admin.blogs.create');
+        return view('admin.blogs.create', [
+            'projects' => $this->projectOptions(),
+        ]);
     }
 
     public function store(Request $request)
@@ -36,7 +44,10 @@ class BlogController extends Controller
 
     public function edit(Blog $blog)
     {
-        return view('admin.blogs.edit', compact('blog'));
+        return view('admin.blogs.edit', [
+            'blog' => $blog,
+            'projects' => $this->projectOptions(),
+        ]);
     }
 
     public function update(Request $request, Blog $blog)
@@ -63,6 +74,7 @@ class BlogController extends Controller
         $blogId = $blog ? $blog->id : 'NULL';
 
         $validated = $request->validate([
+            'project_id' => 'nullable|integer|exists:projects,id',
             'title' => 'required|string|max:190',
             'slug' => 'required|string|max:190|regex:/^[a-z0-9\-]+$/|unique:blogs,slug,' . $blogId,
             'excerpt' => 'nullable|string|max:2500',
@@ -75,9 +87,17 @@ class BlogController extends Controller
             'is_published' => 'nullable|boolean',
         ]);
 
+        $validated['project_id'] = !empty($validated['project_id']) ? (int) $validated['project_id'] : null;
         $validated['sort_order'] = (int) ($validated['sort_order'] ?? 0);
         $validated['is_published'] = $request->boolean('is_published');
 
         return $validated;
+    }
+
+    private function projectOptions()
+    {
+        return Project::query()
+            ->ordered()
+            ->get(['id', 'name', 'slug']);
     }
 }

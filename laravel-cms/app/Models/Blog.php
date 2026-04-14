@@ -13,6 +13,7 @@ class Blog extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'project_id',
         'title',
         'slug',
         'excerpt',
@@ -29,9 +30,15 @@ class Blog extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'project_id' => 'integer',
         'published_at' => 'datetime',
         'is_published' => 'boolean',
     ];
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
 
     public function scopePublished($query)
     {

@@ -7,26 +7,142 @@
 
 @push('head')
     <style>
+        .blog-detail-main {
+            min-height: 100vh;
+            padding-top: 92px;
+            background:
+                radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 30%),
+                linear-gradient(180deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.95)),
+                url('/theme/assets/hovi/gallery/hovi-060.jpg') center top / cover no-repeat;
+        }
+
+        .blog-article-wrap {
+            width: min(1040px, calc(100% - 40px));
+            margin: 0 auto;
+            padding-bottom: 26px;
+        }
+
+        .blog-article-card {
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: linear-gradient(180deg, rgba(7, 7, 7, 0.74), rgba(0, 0, 0, 0.92));
+            box-shadow: 0 18px 44px rgba(0, 0, 0, .3);
+            padding: clamp(20px, 3vw, 34px);
+        }
+
+        .blog-article-title {
+            margin: 0;
+            text-align: center;
+            font-family: 'SVN Aptima', serif;
+            font-weight: 400;
+            font-size: clamp(1.86rem, 2.9vw, 2.9rem);
+            line-height: 1.1;
+            text-wrap: balance;
+        }
+
+        .blog-article-meta {
+            margin: 10px 0 0;
+            text-align: center;
+            color: rgba(255, 255, 255, .7);
+            font-size: .88rem;
+        }
+
+        .blog-article-project {
+            margin: 14px auto 0;
+            width: fit-content;
+            min-height: 28px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .34);
+            background: rgba(0, 0, 0, .26);
+            color: rgba(255, 255, 255, .92);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .76rem;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .blog-article-project-wrap {
+            text-align: center;
+        }
+
         .blog-detail-cover {
             width: 100%;
-            max-height: 520px;
+            margin-top: 20px;
+            max-height: 560px;
             object-fit: cover;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 14px 36px rgba(0, 0, 0, .28);
         }
 
-        .blog-detail-content {
-            margin-top: 14px;
-            color: rgba(255, 255, 255, .84);
+        .blog-article-excerpt {
+            margin: 16px auto 0;
+            max-width: 90ch;
+            color: rgba(255, 255, 255, .82);
             line-height: 1.8;
             font-size: .98rem;
-            white-space: pre-wrap;
+            text-align: center;
         }
 
-        .blog-detail-meta {
-            margin-top: 10px;
-            color: rgba(255, 255, 255, .7);
-            font-size: .86rem;
+        .blog-detail-richtext {
+            margin-top: 18px;
+            color: rgba(255, 255, 255, .86);
+        }
+
+        .blog-detail-richtext,
+        .blog-detail-richtext * {
+            font-family: 'Open Sans', Arial, sans-serif;
+        }
+
+        .blog-detail-richtext p,
+        .blog-detail-richtext li,
+        .blog-detail-richtext blockquote,
+        .blog-detail-richtext pre,
+        .blog-detail-richtext td,
+        .blog-detail-richtext th {
+            color: rgba(255, 255, 255, .86);
+            font-size: 1rem;
+            line-height: 1.85;
+        }
+
+        .blog-detail-richtext h1,
+        .blog-detail-richtext h2,
+        .blog-detail-richtext h3,
+        .blog-detail-richtext h4,
+        .blog-detail-richtext h5,
+        .blog-detail-richtext h6 {
+            font-family: 'SVN Aptima', 'Open Sans', serif;
+            font-weight: 400;
+            line-height: 1.25;
+            color: #fff;
+            margin: 1.25rem 0 .8rem;
+        }
+
+        .blog-detail-richtext img {
+            display: block;
+            max-width: min(100%, 920px);
+            height: auto;
+            margin: 18px auto;
+            border: 1px solid rgba(255, 255, 255, .14);
+        }
+
+        .blog-detail-richtext a {
+            color: #f1b45a;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .blog-detail-empty {
+            margin-top: 16px;
+            color: rgba(255, 255, 255, .72);
+            font-style: italic;
+            text-align: center;
+        }
+
+        .blog-related-main {
+            width: min(1040px, calc(100% - 40px));
+            margin: 0 auto;
         }
     </style>
 @endpush
@@ -45,33 +161,68 @@
 
             return '/theme/assets/hovi/gallery/' . ltrim($value, '/');
         };
+
+        $rawBlogContent = (string) ($blog->content ?? '');
+        $blogContentHasHtml = strip_tags($rawBlogContent) !== $rawBlogContent;
     @endphp
 
-    <main class="detail-main">
-        <section class="detail-article-head" id="tong-quan">
-            <div class="detail-breadcrumb">
-                <a href="{{ route('site.page') }}">Trang chủ</a>
-                <span>/</span>
-                <a href="{{ route('site.blog.index') }}">Blog</a>
-            </div>
-            <h1 class="detail-title">{{ $blog->title }}</h1>
-            <p class="blog-detail-meta">
-                Đăng ngày {{ optional($blog->published_at)->format('d/m/Y H:i') ?: optional($blog->created_at)->format('d/m/Y H:i') }}
-            </p>
+    <main class="blog-detail-main">
+        <section class="blog-article-wrap" id="tong-quan">
+            <article class="blog-article-card">
+                <h1 class="blog-article-title">{{ $blog->title }}</h1>
+                <p class="blog-article-meta">
+                    Admin HOVI &nbsp;|&nbsp;
+                    {{ optional($blog->published_at)->format('d/m/Y') ?: optional($blog->created_at)->format('d/m/Y') }}
+                </p>
+
+                @if ($blog->project)
+                    <p class="blog-article-project-wrap">
+                        <span class="blog-article-project">Dự án liên quan: {{ $blog->project->name }}</span>
+                    </p>
+                @endif
+
+                <img class="blog-detail-cover" src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}">
+
+                @if (!empty($blog->excerpt))
+                    <p class="blog-article-excerpt">{{ $blog->excerpt }}</p>
+                @endif
+
+                @if (!empty(trim($rawBlogContent)))
+                    <div class="blog-detail-richtext">
+                        {!! $blogContentHasHtml ? $rawBlogContent : nl2br(e($rawBlogContent)) !!}
+                    </div>
+                @else
+                    <p class="blog-detail-empty">Nội dung bài viết đang được cập nhật.</p>
+                @endif
+            </article>
         </section>
 
-        <section class="detail-gallery-section">
-            <img class="blog-detail-cover" src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}">
-
-            @if (!empty($blog->excerpt))
-                <p class="detail-lead mt-3 mb-0">{{ $blog->excerpt }}</p>
-            @endif
-
-            <div class="blog-detail-content">{!! nl2br(e((string) $blog->content)) !!}</div>
+        <section class="detail-contact">
+            <div class="detail-contact__inner">
+                <div>
+                    <p class="eyebrow">Liên hệ HOVI VIỆT NAM</p>
+                    <h2>Đặt lịch hẹn tư vấn thiết kế</h2>
+                    <p class="detail-lead">
+                        Gửi nhu cầu để đội ngũ tư vấn liên hệ lại, hoặc gọi trực tiếp để trao đổi nhanh về công trình của bạn.
+                    </p>
+                </div>
+                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit') }}" method="post">
+                    @csrf
+                    <input type="hidden" name="source_page" value="blog/{{ $blog->slug }}">
+                    <input type="text" name="name" autocomplete="name" placeholder="Họ tên*" required>
+                    <input type="tel" name="phone" autocomplete="tel" placeholder="Số điện thoại*" required>
+                    <input type="email" name="email" autocomplete="email" placeholder="Email*">
+                    <textarea name="message" rows="6" placeholder="Nội dung*" required></textarea>
+                    <div class="contact-actions">
+                        <button type="submit" class="contact-submit">ĐẶT LỊCH</button>
+                        <a class="contact-call-btn" href="tel:0988991635">GỌI ĐIỆN</a>
+                    </div>
+                </form>
+            </div>
         </section>
 
         @if ($relatedBlogs->isNotEmpty())
-            <section class="detail-related">
+            <section class="detail-related blog-related-main">
                 <div class="detail-section-heading">
                     <p class="eyebrow">Bài viết liên quan</p>
                     <a class="detail-section-heading__link" href="{{ route('site.blog.index') }}">

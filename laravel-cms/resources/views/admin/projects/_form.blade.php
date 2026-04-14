@@ -44,7 +44,7 @@
 
     <div class="col-12">
         <label class="form-label" for="intro">Giới thiệu tổng quan dự án</label>
-        <textarea class="form-control" id="intro" name="intro" rows="5">{{ old('intro', $project->intro ?? '') }}</textarea>
+        <textarea class="form-control js-rich-editor" id="intro" name="intro" rows="5">{{ old('intro', $project->intro ?? '') }}</textarea>
     </div>
 
     <div class="col-md-6">
