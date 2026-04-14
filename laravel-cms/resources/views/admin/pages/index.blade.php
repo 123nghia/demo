@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h1 class="h3 mb-1">Quản lý trang</h1>
-            <p class="text-muted mb-0">Thiết lập slug, file giao diện và SEO cho từng trang.</p>
+            <p class="text-muted mb-0">Thiết lập slug, blade view và SEO cho từng trang.</p>
         </div>
 
         <a class="btn btn-dark" href="{{ route('admin.pages.create') }}">+ Thêm trang</a>
@@ -20,7 +20,7 @@
                         <th>#</th>
                         <th>Tên</th>
                         <th>Slug</th>
-                        <th>Legacy file</th>
+                        <th>Blade view</th>
                         <th>Hiển thị</th>
                         <th>Thứ tự</th>
                         <th class="text-end">Hành động</th>

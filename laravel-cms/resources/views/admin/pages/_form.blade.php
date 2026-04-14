@@ -17,16 +17,17 @@
     </div>
 
     <div class="col-md-6">
-        <label class="form-label" for="legacy_file">File giao diện (resources/legacy)</label>
-        <input class="form-control" id="legacy_file" name="legacy_file" list="legacyFiles"
+        <label class="form-label" for="legacy_file">Blade view (resources/views/site/pages)</label>
+        <input class="form-control" id="legacy_file" name="legacy_file" list="bladeViews"
             value="{{ old('legacy_file', $page->legacy_file ?? '') }}" required>
-        <datalist id="legacyFiles">
-            <option value="home.html"></option>
-            <option value="about-us.html"></option>
-            <option value="lien-he.html"></option>
-            <option value="ocean-park.html"></option>
-            <option value="duong-noi.html"></option>
+        <datalist id="bladeViews">
+            <option value="home"></option>
+            <option value="about-us"></option>
+            <option value="lien-he"></option>
+            <option value="thiet-ke-biet-thu-vinhomes-ocean-park"></option>
+            <option value="biet-thu-don-lap-m07-l14-dtm-duong-noi"></option>
         </datalist>
+        <div class="form-text">Có thể nhập dạng đầy đủ <code>site.pages.home</code> hoặc ngắn gọn <code>home</code>.</div>
     </div>
 
     <div class="col-md-6">
@@ -36,6 +37,7 @@
         <datalist id="pageKeys">
             <option value="home"></option>
             <option value="about"></option>
+            <option value="blog"></option>
             <option value="oceanpark"></option>
             <option value="contact"></option>
             <option value="project"></option>

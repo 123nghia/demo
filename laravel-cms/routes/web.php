@@ -1,9 +1,19 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\AboutUsContentController;
+use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\HomeContentController;
+use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\ProjectBlogController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ProjectDetailPageController;
+use App\Http\Controllers\Admin\ProjectVideoController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\BlogController as SiteBlogController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,7 +34,21 @@ Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.log
 
 Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('home-content', [HomeContentController::class, 'index'])->name('home-content.index');
+    Route::put('home-content', [HomeContentController::class, 'update'])->name('home-content.update');
     Route::resource('pages', PageController::class)->except(['show']);
+    Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
+    Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::get('about-us-content', [AboutUsContentController::class, 'edit'])->name('about-content.edit');
+    Route::put('about-us-content', [AboutUsContentController::class, 'update'])->name('about-content.update');
+    Route::resource('menu-items', MenuItemController::class)->except(['show']);
+    Route::resource('blogs', BlogController::class)->except(['show']);
+    Route::resource('projects', ProjectController::class)->except(['show']);
+    Route::resource('projects.detail-pages', ProjectDetailPageController::class)
+        ->parameters(['detail-pages' => 'detailPage'])
+        ->except(['index', 'show']);
+    Route::resource('projects.blogs', ProjectBlogController::class)->except(['index', 'show']);
+    Route::resource('projects.videos', ProjectVideoController::class)->except(['index', 'show']);
 
     Route::get('contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
     Route::get('contact-messages/{contactMessage}', [ContactMessageController::class, 'show'])->name('contact-messages.show');
@@ -32,4 +56,6 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
 });
 
 Route::post('/contact-submit', [SiteController::class, 'submitContact'])->name('site.contact.submit');
+Route::get('/blog', [SiteBlogController::class, 'index'])->name('site.blog.index');
+Route::get('/blog/{slug}', [SiteBlogController::class, 'show'])->name('site.blog.show');
 Route::get('/{slug?}', [SiteController::class, 'show'])->where('slug', '.*')->name('site.page');

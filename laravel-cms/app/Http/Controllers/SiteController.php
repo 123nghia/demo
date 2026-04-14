@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
 use App\Models\Page;
+use App\Models\Project;
+use App\Models\ProjectDetailPage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class SiteController extends Controller
@@ -19,18 +20,36 @@ class SiteController extends Controller
             abort(404);
         }
 
-        $page = Page::query()
-            ->published()
-            ->where('slug', $resolvedSlug)
-            ->firstOrFail();
+        $project = $this->resolveProject($resolvedSlug);
+        if ($project instanceof Project) {
+            return view('site.projects.show', [
+                'project' => $project,
+            ]);
+        }
 
-        $legacyPath = resource_path('legacy/' . $page->legacy_file);
-        abort_unless(File::exists($legacyPath), 404, 'Trang chưa có giao diện được cấu hình.');
+        $detailPage = $this->resolveProjectDetailPage($resolvedSlug);
+        if ($detailPage instanceof ProjectDetailPage) {
+            return view('site.projects.detail', [
+                'project' => $detailPage->project,
+                'detailPage' => $detailPage,
+            ]);
+        }
 
-        $html = File::get($legacyPath);
-        $html = $this->transformHtml($html, $page);
+        $page = $this->resolvePage($resolvedSlug);
+        abort_unless($page instanceof Page, 404);
 
-        return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
+        $viewName = $this->resolveViewName((string) $page->legacy_file);
+        abort_unless(view()->exists($viewName), 404, 'Trang chưa có blade view được cấu hình.');
+
+        $viewData = [
+            'page' => $page,
+        ];
+
+        if ($viewName === 'site.pages.home') {
+            $viewData['homeProjectHighlights'] = $this->resolveHomeProjectHighlights();
+        }
+
+        return view($viewName, $viewData);
     }
 
     public function submitContact(Request $request)
@@ -49,79 +68,179 @@ class SiteController extends Controller
             $validated['source_page'] = $previousPath === '' ? 'home' : $previousPath;
         }
 
-        ContactMessage::query()->create($validated);
+        try {
+            ContactMessage::query()->create($validated);
+        } catch (\Throwable $exception) {
+            report($exception);
 
-        return back()->with('success', 'HOVI đã nhận thông tin. Chúng tôi sẽ liên hệ bạn sớm nhất.');
+            $errorMessage = 'Hệ thống đang bận, vui lòng thử lại sau ít phút.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $errorMessage,
+                ], 500);
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'contact' => $errorMessage,
+                ]);
+        }
+
+        $successMessage = 'HOVI đã nhận thông tin. Chúng tôi sẽ liên hệ bạn sớm nhất.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $successMessage,
+            ]);
+        }
+
+        return back()->with('success', $successMessage);
     }
 
-    private function transformHtml(string $html, Page $page): string
+    private function resolveViewName(string $configuredView): string
     {
-        $replacements = [
-            'href="../styles.css"' => 'href="/theme/styles.css"',
-            'href="styles.css"' => 'href="/theme/styles.css"',
-            'src="../script.js"' => 'src="/theme/script.js"',
-            'src="script.js"' => 'src="/theme/script.js"',
-            'src="../shared-layout.js"' => 'src="/theme/shared-layout.js"',
-            'src="shared-layout.js"' => 'src="/theme/shared-layout.js"',
-            'href="../logohome.png"' => 'href="/theme/logohome.png"',
-            'href="logohome.png"' => 'href="/theme/logohome.png"',
-            'src="../assets/' => 'src="/theme/assets/',
-            'src="assets/' => 'src="/theme/assets/',
-            'href="../assets/' => 'href="/theme/assets/',
-            'href="assets/' => 'href="/theme/assets/',
-            'url("assets/' => 'url("/theme/assets/',
-            'action="#" method="post"' => 'action="/contact-submit" method="post"',
+        $viewName = trim($configuredView);
+        $viewName = preg_replace('/\.blade\.php$/i', '', $viewName);
+        $viewName = preg_replace('/\.html$/i', '', $viewName);
+        $viewName = str_replace(['\\', '/'], '.', $viewName);
+
+        if (!Str::startsWith($viewName, 'site.pages.')) {
+            $viewName = 'site.pages.' . $viewName;
+        }
+
+        return $viewName;
+    }
+
+    private function resolveProject(string $slug): ?Project
+    {
+        try {
+            return Project::query()
+                ->published()
+                ->where('slug', $slug)
+                ->with([
+                    'detailPages' => function ($query) {
+                        $query->published()->ordered();
+                    },
+                    'blogs' => function ($query) {
+                        $query->published()->ordered();
+                    },
+                    'videos' => function ($query) {
+                        $query->published()->ordered();
+                    },
+                ])
+                ->first();
+        } catch (\Throwable $exception) {
+            return null;
+        }
+    }
+
+    private function resolveProjectDetailPage(string $slug): ?ProjectDetailPage
+    {
+        try {
+            return ProjectDetailPage::query()
+                ->published()
+                ->where('slug', $slug)
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->with([
+                            'detailPages' => function ($detailQuery) {
+                                $detailQuery->published()->ordered();
+                            },
+                        ]);
+                    },
+                ])
+                ->first();
+        } catch (\Throwable $exception) {
+            return null;
+        }
+    }
+
+    private function resolveHomeProjectHighlights()
+    {
+        try {
+            return ProjectDetailPage::query()
+                ->published()
+                ->whereNotNull('thumbnail_image')
+                ->where('thumbnail_image', '!=', '')
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'slug']);
+                    },
+                ])
+                ->ordered()
+                ->limit(12)
+                ->get();
+        } catch (\Throwable $exception) {
+            return collect();
+        }
+    }
+
+    private function resolvePage(string $slug): ?Page
+    {
+        try {
+            $page = Page::query()
+                ->published()
+                ->where('slug', $slug)
+                ->first();
+
+            if ($page instanceof Page) {
+                return $page;
+            }
+        } catch (\Throwable $exception) {
+            // Ignore and use fallback mapping.
+        }
+
+        $fallback = $this->fallbackPages()[$slug] ?? null;
+        if (empty($fallback)) {
+            return null;
+        }
+
+        return new Page($fallback);
+    }
+
+    private function fallbackPages(): array
+    {
+        return [
+            'home' => [
+                'name' => 'Trang chủ',
+                'slug' => 'home',
+                'legacy_file' => 'home',
+                'page_key' => 'home',
+            ],
+            'about-us' => [
+                'name' => 'Giới thiệu',
+                'slug' => 'about-us',
+                'legacy_file' => 'about-us',
+                'page_key' => 'about',
+            ],
+            'lien-he' => [
+                'name' => 'Liên hệ',
+                'slug' => 'lien-he',
+                'legacy_file' => 'lien-he',
+                'page_key' => 'contact',
+            ],
+            'thiet-ke-biet-thu-vinhomes-ocean-park' => [
+                'name' => 'Thiết kế biệt thự Vinhomes Ocean Park',
+                'slug' => 'thiet-ke-biet-thu-vinhomes-ocean-park',
+                'legacy_file' => 'thiet-ke-biet-thu-vinhomes-ocean-park',
+                'page_key' => 'oceanpark',
+            ],
+            'biet-thu-don-lap-m07-l14-dtm-duong-noi' => [
+                'name' => 'Biệt thự đơn lập M07-L14 Dương Nội',
+                'slug' => 'biet-thu-don-lap-m07-l14-dtm-duong-noi',
+                'legacy_file' => 'biet-thu-don-lap-m07-l14-dtm-duong-noi',
+                'page_key' => 'project',
+            ],
         ];
-
-        $html = str_replace(array_keys($replacements), array_values($replacements), $html);
-
-        $html = preg_replace(
-            '#(href|src)="(?:\./|\.\./)?(about-us|lien-he|thiet-ke-biet-thu-vinhomes-ocean-park|biet-thu-don-lap-m07-l14-dtm-duong-noi)/?"#i',
-            '$1="/$2"',
-            $html
-        );
-
-        $html = preg_replace('#(href|src)="/?([^"?]+)/index\.html"#i', '$1="/$2"', $html);
-        $html = preg_replace('#data-hover-redirect="([^"?]+)/index\.html"#i', 'data-hover-redirect="/$1"', $html);
-
-        $html = preg_replace(
-            '#<form([^>]*class="[^"]*contact-form[^"]*"[^>]*)>#i',
-            '<form$1><input type="hidden" name="source_page" value="' . e($page->slug) . '">',
-            $html
-        );
-
-        if (!empty($page->seo_title)) {
-            $html = preg_replace('#<title>.*?</title>#is', '<title>' . e($page->seo_title) . '</title>', $html, 1);
-        }
-
-        if (!empty($page->seo_description)) {
-            $html = preg_replace(
-                '#<meta\s+name="description"\s+content="[^"]*"\s*/?>#i',
-                '<meta name="description" content="' . e($page->seo_description) . '">',
-                $html,
-                1
-            );
-        }
-
-        $flashBanner = $this->renderFlashBanner();
-        if ($flashBanner !== '') {
-            $html = preg_replace('#<body([^>]*)>#i', '<body$1>' . $flashBanner, $html, 1);
-        }
-
-        return $html;
-    }
-
-    private function renderFlashBanner(): string
-    {
-        $message = session('success');
-        if (empty($message)) {
-            return '';
-        }
-
-        $safeMessage = e($message);
-
-        return '<div id="flash-contact-success" style="position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:#2e7d32;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;box-shadow:0 8px 20px rgba(0,0,0,.28);">'
-            . $safeMessage
-            . '</div><script>setTimeout(function(){var el=document.getElementById("flash-contact-success");if(el){el.remove();}},4500);</script>';
     }
 }

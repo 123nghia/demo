@@ -11,7 +11,7 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <p class="text-muted mb-1">Tổng số trang</p>
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <p class="text-muted mb-1">Trang đang hiển thị</p>
@@ -29,7 +29,25 @@
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Tổng dự án</p>
+                    <p class="display-6 mb-0">{{ $stats['projects'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Dự án đang bật</p>
+                    <p class="display-6 mb-0">{{ $stats['published_projects'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <p class="text-muted mb-1">Tổng liên hệ</p>
@@ -38,7 +56,7 @@
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <p class="text-muted mb-1">Liên hệ chưa đọc</p>
@@ -51,6 +69,8 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body d-flex flex-wrap gap-2">
             <a class="btn btn-dark" href="{{ route('admin.pages.index') }}">Quản lý trang</a>
+            <a class="btn btn-outline-primary" href="{{ route('admin.projects.index') }}">Quản trị dự án</a>
+            <a class="btn btn-outline-secondary" href="{{ route('admin.blogs.index') }}">Quản lý Blog</a>
             <a class="btn btn-outline-dark" href="{{ route('admin.contact-messages.index') }}">Xem liên hệ khách hàng</a>
         </div>
     </div>

@@ -16,6 +16,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             PageSeeder::class,
+            SiteSettingSeeder::class,
+            MenuItemSeeder::class,
+            BlogSeeder::class,
+            ProjectMockupSeeder::class,
         ]);
     }
 }
