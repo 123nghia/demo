@@ -92,10 +92,15 @@ class ProjectVideoController extends Controller
 
         $validated['is_published'] = $request->boolean('is_published');
 
+        $hasUploadedThumbnail = $request->hasFile('thumbnail_image_file');
         $this->replaceWithUploadedFile($request, 'thumbnail_image_file', 'thumbnail_image', $validated);
 
         $validated['thumbnail_image'] = trim((string) ($validated['thumbnail_image'] ?? ''));
         $validated['thumbnail_image'] = $validated['thumbnail_image'] === '' ? null : $validated['thumbnail_image'];
+
+        if (is_null($validated['thumbnail_image']) && !$hasUploadedThumbnail && $video) {
+            $validated['thumbnail_image'] = $video->thumbnail_image;
+        }
 
         unset($validated['thumbnail_image_file']);
 

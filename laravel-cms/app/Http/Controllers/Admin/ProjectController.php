@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
@@ -81,6 +82,7 @@ class ProjectController extends Controller
             'short_description' => 'nullable|string|max:1200',
             'intro' => 'nullable|string|max:15000',
             'cover_image' => 'nullable|string|max:255',
+            'cover_image_file' => 'nullable|image|max:4096',
             'seo_title' => 'nullable|string|max:190',
             'seo_description' => 'nullable|string|max:1000',
             'sort_order' => 'nullable|integer|min:0|max:9999',
@@ -90,6 +92,18 @@ class ProjectController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_published'] = $request->boolean('is_published');
 
+        $hasUploadedCover = $request->hasFile('cover_image_file');
+        $this->replaceWithUploadedFile($request, 'cover_image_file', 'cover_image', $validated);
+
+        $validated['cover_image'] = trim((string) ($validated['cover_image'] ?? ''));
+        $validated['cover_image'] = $validated['cover_image'] === '' ? null : $validated['cover_image'];
+
+        if (is_null($validated['cover_image']) && !$hasUploadedCover && $project) {
+            $validated['cover_image'] = $project->cover_image;
+        }
+
+        unset($validated['cover_image_file']);
+
         $detailSlugExists = ProjectDetailPage::query()->where('slug', $validated['slug'])->exists();
         if ($detailSlugExists) {
             throw ValidationException::withMessages([
@@ -98,5 +112,30 @@ class ProjectController extends Controller
         }
 
         return $validated;
+    }
+
+    private function replaceWithUploadedFile(Request $request, string $fileInput, string $field, array &$payload): void
+    {
+        if (!$request->hasFile($fileInput)) {
+            return;
+        }
+
+        $file = $request->file($fileInput);
+        if (!$file || !$file->isValid()) {
+            return;
+        }
+
+        $uploadDirectory = public_path('uploads/projects');
+
+        if (!is_dir($uploadDirectory)) {
+            mkdir($uploadDirectory, 0755, true);
+        }
+
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+        $filename = 'project-cover-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+
+        $file->move($uploadDirectory, $filename);
+
+        $payload[$field] = '/uploads/projects/' . $filename;
     }
 }

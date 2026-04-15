@@ -265,18 +265,17 @@
         <div class="card home-config-card">
             <div class="card-header">1) Hero</div>
             <div class="card-body row g-3">
-                <div class="col-md-8 js-home-image-field">
-                    <label class="form-label" for="hero_background_image">Ảnh nền Hero</label>
-                    <input class="form-control js-home-image-path" id="hero_background_image" name="hero_background_image"
-                        type="text" value="{{ old('hero_background_image', data_get($hero, 'background_image')) }}"
+                <div class="col-md-8 js-home-image-field d-none">
+                    <input class="js-home-image-path" id="hero_background_image" name="hero_background_image"
+                        type="hidden" value="{{ old('hero_background_image', data_get($hero, 'background_image')) }}"
                         data-preview-id="hero-bg-preview" data-meta-id="hero-bg-meta">
-                    <div class="form-text">Khuyến nghị: <strong>1920 × 1080 px</strong>, định dạng JPG/WebP.</div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <label class="form-label" for="hero_background_image_file">Upload ảnh Hero</label>
                     <input class="form-control js-home-image-file" id="hero_background_image_file"
                         name="hero_background_image_file" type="file" accept="image/*" data-preview-id="hero-bg-preview"
                         data-meta-id="hero-bg-meta">
+                    <div class="form-text">Khuyến nghị: <strong>1920 × 1080 px</strong>, định dạng JPG/WebP.</div>
                 </div>
                 <div class="col-12">
                     <div class="home-preview-box">
@@ -301,18 +300,17 @@
         <div class="card home-config-card">
             <div class="card-header">2) Hồ sơ năng lực</div>
             <div class="card-body row g-3">
-                <div class="col-md-8 js-home-image-field">
-                    <label class="form-label" for="profile_background_image">Ảnh nền section Hồ sơ năng lực</label>
-                    <input class="form-control js-home-image-path" id="profile_background_image" name="profile_background_image"
-                        type="text" value="{{ old('profile_background_image', data_get($profile, 'background_image')) }}"
+                <div class="col-md-8 js-home-image-field d-none">
+                    <input class="js-home-image-path" id="profile_background_image" name="profile_background_image"
+                        type="hidden" value="{{ old('profile_background_image', data_get($profile, 'background_image')) }}"
                         data-preview-id="profile-bg-preview" data-meta-id="profile-bg-meta">
-                    <div class="form-text">Khuyến nghị: <strong>1920 × 1080 px</strong>.</div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <label class="form-label" for="profile_background_image_file">Upload ảnh nền</label>
                     <input class="form-control js-home-image-file" id="profile_background_image_file"
                         name="profile_background_image_file" type="file" accept="image/*"
                         data-preview-id="profile-bg-preview" data-meta-id="profile-bg-meta">
+                    <div class="form-text">Khuyến nghị: <strong>1920 × 1080 px</strong>.</div>
                 </div>
                 <div class="col-12">
                     <div class="home-preview-box">
@@ -479,17 +477,16 @@
                         value="{{ old('about_cta_url', data_get($about, 'cta_url')) }}">
                 </div>
 
-                <div class="col-md-8 js-home-image-field">
-                    <label class="form-label" for="about_team_image">Ảnh đội ngũ</label>
-                    <input class="form-control js-home-image-path" id="about_team_image" name="about_team_image"
-                        type="text" value="{{ old('about_team_image', data_get($about, 'team_image')) }}"
+                <div class="col-md-8 js-home-image-field d-none">
+                    <input class="js-home-image-path" id="about_team_image" name="about_team_image"
+                        type="hidden" value="{{ old('about_team_image', data_get($about, 'team_image')) }}"
                         data-preview-id="about-team-preview" data-meta-id="about-team-meta">
-                    <div class="form-text">Khuyến nghị: <strong>1600 × 900 px</strong>.</div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <label class="form-label" for="about_team_image_file">Upload ảnh đội ngũ</label>
                     <input class="form-control js-home-image-file" id="about_team_image_file" name="about_team_image_file"
                         type="file" accept="image/*" data-preview-id="about-team-preview" data-meta-id="about-team-meta">
+                    <div class="form-text">Khuyến nghị: <strong>1600 × 900 px</strong>.</div>
                 </div>
                 <div class="col-12">
                     <div class="home-preview-box">
@@ -526,14 +523,13 @@
                             <input class="form-control" id="footer_consult_button_url" name="footer_consult_button_url"
                                 type="text" value="{{ old('footer_consult_button_url', data_get($consult, 'button_url')) }}">
                         </div>
-                        <div class="col-md-8 js-home-image-field">
-                            <label class="form-label" for="footer_consult_background_image">Ảnh nền CTA</label>
-                            <input class="form-control js-home-image-path" id="footer_consult_background_image"
-                                name="footer_consult_background_image" type="text"
+                        <div class="col-md-8 js-home-image-field d-none">
+                            <input class="js-home-image-path" id="footer_consult_background_image"
+                                name="footer_consult_background_image" type="hidden"
                                 value="{{ old('footer_consult_background_image', data_get($consult, 'background_image')) }}"
                                 data-preview-id="footer-consult-preview" data-meta-id="footer-consult-meta">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-12">
                             <label class="form-label" for="footer_consult_background_image_file">Upload ảnh</label>
                             <input class="form-control js-home-image-file" id="footer_consult_background_image_file"
                                 name="footer_consult_background_image_file" type="file" accept="image/*"
@@ -571,14 +567,13 @@
                             <input class="form-control" id="footer_partner_button_url" name="footer_partner_button_url"
                                 type="text" value="{{ old('footer_partner_button_url', data_get($partner, 'button_url')) }}">
                         </div>
-                        <div class="col-md-8 js-home-image-field">
-                            <label class="form-label" for="footer_partner_background_image">Ảnh nền CTA</label>
-                            <input class="form-control js-home-image-path" id="footer_partner_background_image"
-                                name="footer_partner_background_image" type="text"
+                        <div class="col-md-8 js-home-image-field d-none">
+                            <input class="js-home-image-path" id="footer_partner_background_image"
+                                name="footer_partner_background_image" type="hidden"
                                 value="{{ old('footer_partner_background_image', data_get($partner, 'background_image')) }}"
                                 data-preview-id="footer-partner-preview" data-meta-id="footer-partner-meta">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-12">
                             <label class="form-label" for="footer_partner_background_image_file">Upload ảnh</label>
                             <input class="form-control js-home-image-file" id="footer_partner_background_image_file"
                                 name="footer_partner_background_image_file" type="file" accept="image/*"
@@ -638,19 +633,18 @@
                             @endphp
 
                             <div class="row g-2 align-items-start js-home-highlight-row js-home-image-container home-highlight-row">
-                                <div class="col-md-6 js-home-image-field">
-                                    <label class="form-label small mb-1">Ảnh thumbnail #<span
-                                            class="js-home-highlight-row-index">{{ $index + 1 }}</span></label>
-                                    <input class="form-control form-control-sm js-home-image-path" type="text"
-                                        name="project_highlight_images[]" value="{{ $highlightImage }}"
-                                        placeholder="/uploads/home/thumbnail.jpg" data-preview-id="{{ $highlightPreviewId }}"
+                                <div class="col-md-6 js-home-image-field d-none">
+                                    <input class="js-home-image-path" type="hidden" name="project_highlight_images[]"
+                                        value="{{ $highlightImage }}" data-preview-id="{{ $highlightPreviewId }}"
                                         data-meta-id="{{ $highlightMetaId }}">
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small mb-1">Upload thumbnail</label>
+                                <div class="col-md-10">
+                                    <label class="form-label small mb-1">Upload thumbnail #<span
+                                            class="js-home-highlight-row-index">{{ $index + 1 }}</span></label>
                                     <input class="form-control form-control-sm js-home-image-file" type="file"
                                         name="project_highlight_image_files[]" accept="image/*"
                                         data-preview-id="{{ $highlightPreviewId }}" data-meta-id="{{ $highlightMetaId }}">
+                                    <div class="form-text">Upload file mới để thay thumbnail hiện tại.</div>
                                 </div>
                                 <div class="col-md-2 d-grid">
                                     <label class="form-label small mb-1 invisible">Xóa</label>

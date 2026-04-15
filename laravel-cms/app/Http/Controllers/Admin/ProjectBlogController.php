@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectBlog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProjectBlogController extends Controller
 {
@@ -63,6 +64,7 @@ class ProjectBlogController extends Controller
             'excerpt' => 'nullable|string|max:1500',
             'content' => 'nullable|string|max:30000',
             'thumbnail_image' => 'nullable|string|max:255',
+            'thumbnail_image_file' => 'nullable|image|max:4096',
             'target_url' => 'nullable|string|max:255',
             'published_at' => 'nullable|date',
             'sort_order' => 'nullable|integer|min:0|max:9999',
@@ -72,7 +74,44 @@ class ProjectBlogController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_published'] = $request->boolean('is_published');
 
+        $hasUploadedThumbnail = $request->hasFile('thumbnail_image_file');
+        $this->replaceWithUploadedFile($request, 'thumbnail_image_file', 'thumbnail_image', $validated);
+
+        $validated['thumbnail_image'] = trim((string) ($validated['thumbnail_image'] ?? ''));
+        $validated['thumbnail_image'] = $validated['thumbnail_image'] === '' ? null : $validated['thumbnail_image'];
+
+        if (is_null($validated['thumbnail_image']) && !$hasUploadedThumbnail && $blog) {
+            $validated['thumbnail_image'] = $blog->thumbnail_image;
+        }
+
+        unset($validated['thumbnail_image_file']);
+
         return $validated;
+    }
+
+    private function replaceWithUploadedFile(Request $request, string $fileInput, string $field, array &$payload): void
+    {
+        if (!$request->hasFile($fileInput)) {
+            return;
+        }
+
+        $file = $request->file($fileInput);
+        if (!$file || !$file->isValid()) {
+            return;
+        }
+
+        $uploadDirectory = public_path('uploads/blogs');
+
+        if (!is_dir($uploadDirectory)) {
+            mkdir($uploadDirectory, 0755, true);
+        }
+
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+        $filename = 'project-blog-thumb-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+
+        $file->move($uploadDirectory, $filename);
+
+        $payload[$field] = '/uploads/blogs/' . $filename;
     }
 
     private function ensureOwnership(Project $project, ProjectBlog $blog): void

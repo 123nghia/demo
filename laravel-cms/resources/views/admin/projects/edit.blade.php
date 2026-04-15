@@ -71,7 +71,8 @@
 
     <div class="project-manage-grid">
         <div>
-            <form action="{{ route('admin.projects.update', $project) }}" method="post" class="project-box mb-3">
+            <form action="{{ route('admin.projects.update', $project) }}" method="post" enctype="multipart/form-data"
+                class="project-box mb-3">
                 @csrf
                 @method('PUT')
 

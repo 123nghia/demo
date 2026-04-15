@@ -68,17 +68,16 @@
         </div>
     </div>
 
-    <div class="col-md-8">
-        <label class="form-label" for="thumbnail_image">Ảnh thumbnail (URL hoặc đường dẫn)</label>
-        <input class="form-control" id="thumbnail_image" name="thumbnail_image" type="text"
-            value="{{ old('thumbnail_image', $video->thumbnail_image ?? '') }}"
-            placeholder="/uploads/videos/... hoặc https://...">
+    <div class="col-md-8 d-none">
+        <input id="thumbnail_image" name="thumbnail_image" type="hidden"
+            value="{{ old('thumbnail_image', $video->thumbnail_image ?? '') }}">
     </div>
 
     <div class="col-md-4">
         <label class="form-label" for="thumbnail_image_file">Upload ảnh thumbnail</label>
         <input class="form-control" id="thumbnail_image_file" name="thumbnail_image_file" type="file"
             accept="image/*">
+        <div class="form-text">Upload file mới để thay thumbnail hiện tại.</div>
     </div>
 
     @php $thumbnailPreview = old('thumbnail_image', $video->thumbnail_image ?? ''); @endphp

@@ -37,36 +37,47 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label" for="header_logo">Logo header (đường dẫn)</label>
-                    <input class="form-control" id="header_logo" name="header_logo" type="text"
-                        value="{{ $value('header_logo') }}" placeholder="/uploads/settings/logo-header.png">
-                    <div class="form-text">Có thể nhập đường dẫn nội bộ hoặc URL tuyệt đối.</div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="header_logo_file">Upload logo header</label>
+                    @php $headerLogo = $value('header_logo'); @endphp
+                    <label class="form-label" for="header_logo_file">Logo header</label>
+                    <input id="header_logo" name="header_logo" type="hidden" value="{{ $headerLogo }}">
+                    @if (!empty($headerLogo))
+                        <div class="mb-2">
+                            <img src="{{ $headerLogo }}" alt="Logo header hiện tại"
+                                style="max-height:72px;max-width:100%;object-fit:contain;border:1px solid #dee2e6;border-radius:.5rem;padding:.25rem;background:#fff;">
+                        </div>
+                    @endif
                     <input class="form-control" id="header_logo_file" name="header_logo_file" type="file"
                         accept="image/*">
+                    <div class="form-text">Chỉ cần upload file mới khi muốn thay logo.</div>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label" for="footer_logo">Logo footer (đường dẫn)</label>
-                    <input class="form-control" id="footer_logo" name="footer_logo" type="text"
-                        value="{{ $value('footer_logo') }}" placeholder="/uploads/settings/logo-footer.png">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="footer_logo_file">Upload logo footer</label>
+                    @php $footerLogo = $value('footer_logo'); @endphp
+                    <label class="form-label" for="footer_logo_file">Logo footer</label>
+                    <input id="footer_logo" name="footer_logo" type="hidden" value="{{ $footerLogo }}">
+                    @if (!empty($footerLogo))
+                        <div class="mb-2">
+                            <img src="{{ $footerLogo }}" alt="Logo footer hiện tại"
+                                style="max-height:72px;max-width:100%;object-fit:contain;border:1px solid #dee2e6;border-radius:.5rem;padding:.25rem;background:#fff;">
+                        </div>
+                    @endif
                     <input class="form-control" id="footer_logo_file" name="footer_logo_file" type="file"
                         accept="image/*">
+                    <div class="form-text">Chỉ cần upload file mới khi muốn thay logo.</div>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label" for="favicon">Favicon (đường dẫn)</label>
-                    <input class="form-control" id="favicon" name="favicon" type="text"
-                        value="{{ $value('favicon') }}" placeholder="/uploads/settings/favicon.png">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="favicon_file">Upload favicon</label>
+                    @php $favicon = $value('favicon'); @endphp
+                    <label class="form-label" for="favicon_file">Favicon</label>
+                    <input id="favicon" name="favicon" type="hidden" value="{{ $favicon }}">
+                    @if (!empty($favicon))
+                        <div class="mb-2">
+                            <img src="{{ $favicon }}" alt="Favicon hiện tại"
+                                style="max-height:56px;max-width:100%;object-fit:contain;border:1px solid #dee2e6;border-radius:.5rem;padding:.25rem;background:#fff;">
+                        </div>
+                    @endif
                     <input class="form-control" id="favicon_file" name="favicon_file" type="file" accept="image/*">
+                    <div class="form-text">Upload file để thay favicon hiện tại.</div>
                 </div>
             </div>
         </div>
@@ -103,16 +114,19 @@
                         value="{{ $value('seo_canonical_base') }}" placeholder="https://example.com">
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label" for="seo_og_image">OG image (đường dẫn)</label>
-                    <input class="form-control" id="seo_og_image" name="seo_og_image" type="text"
-                        value="{{ $value('seo_og_image') }}" placeholder="/uploads/settings/og-image.jpg">
-                </div>
-
                 <div class="col-12">
-                    <label class="form-label" for="seo_og_image_file">Upload OG image</label>
+                    @php $seoOgImage = $value('seo_og_image'); @endphp
+                    <label class="form-label" for="seo_og_image_file">OG image</label>
+                    <input id="seo_og_image" name="seo_og_image" type="hidden" value="{{ $seoOgImage }}">
+                    @if (!empty($seoOgImage))
+                        <div class="mb-2">
+                            <img src="{{ $seoOgImage }}" alt="OG image hiện tại"
+                                style="max-height:120px;max-width:100%;object-fit:cover;border:1px solid #dee2e6;border-radius:.5rem;background:#fff;">
+                        </div>
+                    @endif
                     <input class="form-control" id="seo_og_image_file" name="seo_og_image_file" type="file"
                         accept="image/*">
+                    <div class="form-text">Upload file mới để thay ảnh OG.</div>
                 </div>
             </div>
         </div>

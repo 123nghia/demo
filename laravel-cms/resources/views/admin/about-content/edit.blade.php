@@ -174,8 +174,7 @@
             @method('PUT')
 
             <div class="alert alert-info mb-0">
-                <strong>Mẹo:</strong> Upload file để thay ảnh nhanh. Đường dẫn và ALT ảnh đã được gom vào mục “Tùy chọn
-                nâng cao” để form gọn hơn.
+                <strong>Mẹo:</strong> Upload file để thay ảnh nhanh. Trường đường dẫn ảnh đã được ẩn để tránh nhập tay sai.
             </div>
 
             <div class="accordion" id="aboutContentAccordion">

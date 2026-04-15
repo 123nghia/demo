@@ -11,7 +11,8 @@
         <a class="btn btn-outline-dark" href="{{ route('admin.projects.index') }}">← Quay lại</a>
     </div>
 
-    <form action="{{ route('admin.projects.store') }}" method="post" class="card border-0 shadow-sm">
+    <form action="{{ route('admin.projects.store') }}" method="post" enctype="multipart/form-data"
+        class="card border-0 shadow-sm">
         @csrf
         <div class="card-body">
             @include('admin.projects._form')

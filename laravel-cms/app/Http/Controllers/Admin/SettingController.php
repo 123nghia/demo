@@ -53,6 +53,8 @@ class SettingController extends Controller
             'seo_og_image_file' => 'nullable|image|max:4096',
         ]);
 
+        $existingSettings = SiteSetting::allAsArray();
+
         $settings = collect($validated)
             ->except(['header_logo_file', 'footer_logo_file', 'favicon_file', 'seo_og_image_file'])
             ->map(function ($value) {
@@ -69,6 +71,25 @@ class SettingController extends Controller
         $this->replaceWithUploadedFile($request, 'footer_logo_file', 'footer_logo', $settings);
         $this->replaceWithUploadedFile($request, 'favicon_file', 'favicon', $settings);
         $this->replaceWithUploadedFile($request, 'seo_og_image_file', 'seo_og_image', $settings);
+
+        foreach ([
+            ['file' => 'header_logo_file', 'key' => 'header_logo'],
+            ['file' => 'footer_logo_file', 'key' => 'footer_logo'],
+            ['file' => 'favicon_file', 'key' => 'favicon'],
+            ['file' => 'seo_og_image_file', 'key' => 'seo_og_image'],
+        ] as $imageField) {
+            $settingKey = $imageField['key'];
+
+            if ($request->hasFile($imageField['file'])) {
+                continue;
+            }
+
+            if (array_key_exists($settingKey, $settings) && !is_null($settings[$settingKey])) {
+                continue;
+            }
+
+            $settings[$settingKey] = $existingSettings[$settingKey] ?? null;
+        }
 
         SiteSetting::setMany($settings);
 

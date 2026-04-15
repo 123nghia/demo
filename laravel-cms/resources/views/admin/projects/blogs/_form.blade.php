@@ -22,10 +22,16 @@
             value="{{ old('sort_order', $blog->sort_order ?? 0) }}">
     </div>
 
-    <div class="col-md-6">
-        <label class="form-label" for="thumbnail_image">Ảnh thumbnail</label>
-        <input class="form-control" id="thumbnail_image" name="thumbnail_image" type="text"
+    <div class="col-md-6 d-none">
+        <input id="thumbnail_image" name="thumbnail_image" type="hidden"
             value="{{ old('thumbnail_image', $blog->thumbnail_image ?? '') }}">
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="thumbnail_image_file">Upload ảnh thumbnail</label>
+        <input class="form-control" id="thumbnail_image_file" name="thumbnail_image_file" type="file"
+            accept="image/*">
+        <div class="form-text">Upload file mới để thay thumbnail hiện tại.</div>
     </div>
 
     <div class="col-md-6">
@@ -34,6 +40,15 @@
             value="{{ old('target_url', $blog->target_url ?? '') }}">
         <div class="form-text">Có thể nhập URL ngoài hoặc route nội bộ, ví dụ: <code>/some-blog</code>.</div>
     </div>
+
+    @php $thumbnailPreview = old('thumbnail_image', $blog->thumbnail_image ?? ''); @endphp
+    @if (!empty($thumbnailPreview))
+        <div class="col-12">
+            <p class="form-label mb-1">Thumbnail hiện tại</p>
+            <img src="{{ $thumbnailPreview }}" alt="Thumbnail preview"
+                style="max-width:260px;max-height:160px;object-fit:cover;border:1px solid #dee2e6;border-radius:.5rem;">
+        </div>
+    @endif
 
     <div class="col-md-6">
         <label class="form-label" for="published_at">Thời điểm đăng</label>

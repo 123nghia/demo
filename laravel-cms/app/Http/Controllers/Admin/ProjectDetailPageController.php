@@ -82,6 +82,10 @@ class ProjectDetailPageController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_published'] = $request->boolean('is_published');
 
+        $validated['thumbnail_image'] = trim((string) ($validated['thumbnail_image'] ?? ''));
+        $validated['thumbnail_image'] = $validated['thumbnail_image'] === '' ? null : $validated['thumbnail_image'];
+
+        $hasUploadedThumbnail = $request->hasFile('thumbnail_image_file');
         $uploadedThumbnail = $this->storeUploadedImage(
             $request,
             'thumbnail_image_file',
@@ -90,6 +94,8 @@ class ProjectDetailPageController extends Controller
 
         if (!is_null($uploadedThumbnail)) {
             $validated['thumbnail_image'] = $uploadedThumbnail;
+        } elseif (is_null($validated['thumbnail_image']) && !$hasUploadedThumbnail && $detailPage) {
+            $validated['thumbnail_image'] = $detailPage->thumbnail_image;
         }
 
         $projectSlugExists = Project::query()->where('slug', $validated['slug'])->exists();

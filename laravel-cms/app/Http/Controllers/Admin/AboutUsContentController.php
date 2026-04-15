@@ -100,27 +100,59 @@ class AboutUsContentController extends Controller
             'capacity_action_2_url' => 'nullable|string|max:255',
         ]);
 
+        $existingAboutContent = SiteSetting::aboutContent();
+
+        $heroImage = $this->cleanString($validated['hero_image'] ?? null);
+        if (is_null($heroImage) && !$request->hasFile('hero_image_file')) {
+            $heroImage = $this->cleanString(data_get($existingAboutContent, 'hero.image'));
+        }
+
+        $missionImage = $this->cleanString($validated['mission_image'] ?? null);
+        if (is_null($missionImage) && !$request->hasFile('mission_image_file')) {
+            $missionImage = $this->cleanString(data_get($existingAboutContent, 'mission.image'));
+        }
+
+        $visionImage = $this->cleanString($validated['vision_image'] ?? null);
+        if (is_null($visionImage) && !$request->hasFile('vision_image_file')) {
+            $visionImage = $this->cleanString(data_get($existingAboutContent, 'vision.image'));
+        }
+
+        $inspirationImage = $this->cleanString($validated['inspiration_image'] ?? null);
+        if (is_null($inspirationImage) && !$request->hasFile('inspiration_image_file')) {
+            $inspirationImage = $this->cleanString(data_get($existingAboutContent, 'inspiration.image'));
+        }
+
+        $advantagesImage = $this->cleanString($validated['advantages_image'] ?? null);
+        if (is_null($advantagesImage) && !$request->hasFile('advantages_image_file')) {
+            $advantagesImage = $this->cleanString(data_get($existingAboutContent, 'advantages.image'));
+        }
+
+        $ceoImage = $this->cleanString($validated['ceo_image'] ?? null);
+        if (is_null($ceoImage) && !$request->hasFile('ceo_image_file')) {
+            $ceoImage = $this->cleanString(data_get($existingAboutContent, 'ceo.image'));
+        }
+
         $aboutContent = [
             'hero' => [
                 'enabled' => $request->boolean('hero_enabled'),
                 'eyebrow' => $this->cleanString($validated['hero_eyebrow'] ?? null),
                 'title' => $this->cleanString($validated['hero_title'] ?? null),
                 'description' => $this->cleanString($validated['hero_description'] ?? null),
-                'image' => $this->cleanString($validated['hero_image'] ?? null),
+                'image' => $heroImage,
                 'image_alt' => $this->cleanString($validated['hero_image_alt'] ?? null),
             ],
             'mission' => [
                 'enabled' => $request->boolean('mission_enabled'),
                 'title' => $this->cleanString($validated['mission_title'] ?? null),
                 'description' => $this->cleanString($validated['mission_description'] ?? null),
-                'image' => $this->cleanString($validated['mission_image'] ?? null),
+                'image' => $missionImage,
                 'image_alt' => $this->cleanString($validated['mission_image_alt'] ?? null),
             ],
             'vision' => [
                 'enabled' => $request->boolean('vision_enabled'),
                 'title' => $this->cleanString($validated['vision_title'] ?? null),
                 'description' => $this->cleanString($validated['vision_description'] ?? null),
-                'image' => $this->cleanString($validated['vision_image'] ?? null),
+                'image' => $visionImage,
                 'image_alt' => $this->cleanString($validated['vision_image_alt'] ?? null),
             ],
             'inspiration' => [
@@ -128,7 +160,7 @@ class AboutUsContentController extends Controller
                 'title' => $this->cleanString($validated['inspiration_title'] ?? null),
                 'subtitle' => $this->cleanString($validated['inspiration_subtitle'] ?? null),
                 'description' => $this->cleanString($validated['inspiration_description'] ?? null),
-                'image' => $this->cleanString($validated['inspiration_image'] ?? null),
+                'image' => $inspirationImage,
                 'image_alt' => $this->cleanString($validated['inspiration_image_alt'] ?? null),
             ],
             'definition' => [
@@ -163,7 +195,7 @@ class AboutUsContentController extends Controller
             'advantages' => [
                 'enabled' => $request->boolean('advantages_enabled'),
                 'title' => $this->cleanString($validated['advantages_title'] ?? null),
-                'image' => $this->cleanString($validated['advantages_image'] ?? null),
+                'image' => $advantagesImage,
                 'image_alt' => $this->cleanString($validated['advantages_image_alt'] ?? null),
                 'items' => $this->normalizeItems($validated['advantages_items'] ?? [], ['title', 'description']),
             ],
@@ -173,7 +205,7 @@ class AboutUsContentController extends Controller
                 'title' => $this->cleanString($validated['ceo_title'] ?? null),
                 'description_1' => $this->cleanString($validated['ceo_description_1'] ?? null),
                 'description_2' => $this->cleanString($validated['ceo_description_2'] ?? null),
-                'image' => $this->cleanString($validated['ceo_image'] ?? null),
+                'image' => $ceoImage,
                 'image_alt' => $this->cleanString($validated['ceo_image_alt'] ?? null),
             ],
             'capacity' => [

@@ -223,13 +223,38 @@ class HomeContentController extends Controller
             data_get($existingHomeContent, 'project_highlights.auto_excluded_detail_page_ids', [])
         );
 
+        $heroBackgroundImage = $this->cleanString($validated['hero_background_image'] ?? null);
+        if (is_null($heroBackgroundImage) && !$request->hasFile('hero_background_image_file')) {
+            $heroBackgroundImage = $this->cleanString(data_get($existingHomeContent, 'hero.background_image'));
+        }
+
+        $profileBackgroundImage = $this->cleanString($validated['profile_background_image'] ?? null);
+        if (is_null($profileBackgroundImage) && !$request->hasFile('profile_background_image_file')) {
+            $profileBackgroundImage = $this->cleanString(data_get($existingHomeContent, 'profile.background_image'));
+        }
+
+        $aboutTeamImage = $this->cleanString($validated['about_team_image'] ?? null);
+        if (is_null($aboutTeamImage) && !$request->hasFile('about_team_image_file')) {
+            $aboutTeamImage = $this->cleanString(data_get($existingHomeContent, 'about.team_image'));
+        }
+
+        $footerConsultBackgroundImage = $this->cleanString($validated['footer_consult_background_image'] ?? null);
+        if (is_null($footerConsultBackgroundImage) && !$request->hasFile('footer_consult_background_image_file')) {
+            $footerConsultBackgroundImage = $this->cleanString(data_get($existingHomeContent, 'footer_cta.consult.background_image'));
+        }
+
+        $footerPartnerBackgroundImage = $this->cleanString($validated['footer_partner_background_image'] ?? null);
+        if (is_null($footerPartnerBackgroundImage) && !$request->hasFile('footer_partner_background_image_file')) {
+            $footerPartnerBackgroundImage = $this->cleanString(data_get($existingHomeContent, 'footer_cta.partner.background_image'));
+        }
+
         $homeContent = [
             'hero' => [
-                'background_image' => $this->cleanString($validated['hero_background_image'] ?? null),
+                'background_image' => $heroBackgroundImage,
                 'scroll_target' => $this->cleanString($validated['hero_scroll_target'] ?? null),
             ],
             'profile' => [
-                'background_image' => $this->cleanString($validated['profile_background_image'] ?? null),
+                'background_image' => $profileBackgroundImage,
                 'eyebrow' => $this->cleanString($validated['profile_eyebrow'] ?? null),
                 'title' => $this->cleanString($validated['profile_title'] ?? null),
                 'description_1' => $this->cleanString($validated['profile_description_1'] ?? null),
@@ -244,20 +269,20 @@ class HomeContentController extends Controller
                 'stats' => $aboutStats,
                 'cta_label' => $this->cleanString($validated['about_cta_label'] ?? null),
                 'cta_url' => $this->cleanString($validated['about_cta_url'] ?? null),
-                'team_image' => $this->cleanString($validated['about_team_image'] ?? null),
+                'team_image' => $aboutTeamImage,
             ],
             'footer_cta' => [
                 'consult' => [
                     'title' => $this->cleanString($validated['footer_consult_title'] ?? null),
                     'button_label' => $this->cleanString($validated['footer_consult_button_label'] ?? null),
                     'button_url' => $this->cleanString($validated['footer_consult_button_url'] ?? null),
-                    'background_image' => $this->cleanString($validated['footer_consult_background_image'] ?? null),
+                    'background_image' => $footerConsultBackgroundImage,
                 ],
                 'partner' => [
                     'title' => $this->cleanString($validated['footer_partner_title'] ?? null),
                     'button_label' => $this->cleanString($validated['footer_partner_button_label'] ?? null),
                     'button_url' => $this->cleanString($validated['footer_partner_button_url'] ?? null),
-                    'background_image' => $this->cleanString($validated['footer_partner_background_image'] ?? null),
+                    'background_image' => $footerPartnerBackgroundImage,
                 ],
             ],
             'project_highlights' => [

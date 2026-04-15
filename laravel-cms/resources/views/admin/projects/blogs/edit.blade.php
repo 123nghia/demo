@@ -12,7 +12,7 @@
     </div>
 
     <form action="{{ route('admin.projects.blogs.update', [$project, $blog]) }}" method="post"
-        class="card border-0 shadow-sm">
+        enctype="multipart/form-data" class="card border-0 shadow-sm">
         @csrf
         @method('PUT')
         <div class="card-body">

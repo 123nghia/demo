@@ -111,14 +111,12 @@
             value="{{ old('sort_order', $detailPage->sort_order ?? 0) }}">
     </div>
 
-    <div class="col-md-8 js-project-thumbnail-field thumb-upload-box">
-        <label class="form-label" for="thumbnail_image">Ảnh thumbnail (dùng cho trang chủ)</label>
-        <input class="form-control js-project-thumbnail-path" id="thumbnail_image" name="thumbnail_image" type="text"
+    <div class="col-md-8 js-project-thumbnail-field thumb-upload-box d-none">
+        <input class="js-project-thumbnail-path" id="thumbnail_image" name="thumbnail_image" type="hidden"
             value="{{ $thumbnailValue }}" data-preview-id="{{ $thumbnailPreviewId }}" data-meta-id="{{ $thumbnailMetaId }}">
-        <div class="form-text">Có thể nhập URL đầy đủ hoặc đường dẫn nội bộ như <code>/uploads/projects/...</code>.</div>
     </div>
 
-    <div class="col-md-4 thumb-upload-box">
+    <div class="col-md-12 thumb-upload-box">
         <label class="form-label" for="thumbnail_image_file">Upload thumbnail</label>
         <input class="form-control js-project-thumbnail-file" id="thumbnail_image_file" name="thumbnail_image_file"
             type="file" accept="image/*" data-preview-id="{{ $thumbnailPreviewId }}" data-meta-id="{{ $thumbnailMetaId }}">
