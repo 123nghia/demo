@@ -16,16 +16,11 @@ class MenuItemController extends Controller
      */
     public function index()
     {
-        $zoneFilter = (string) request()->query('menu_zone', 'all');
-        if (!in_array($zoneFilter, ['all', MenuItem::ZONE_MAIN, MenuItem::ZONE_ABOUT_US], true)) {
-            $zoneFilter = 'all';
-        }
+        $zoneFilter = MenuItem::ZONE_MAIN;
 
         $menuItems = MenuItem::query()
             ->with('parent')
-            ->when($zoneFilter !== 'all', function ($query) use ($zoneFilter) {
-                $query->inZone($zoneFilter);
-            })
+            ->inZone(MenuItem::ZONE_MAIN)
             ->orderedHierarchy()
             ->paginate(30)
             ->withQueryString();
@@ -125,7 +120,7 @@ class MenuItemController extends Controller
         $validated = $request->validate([
             'label' => 'required|string|max:100',
             'url' => 'required|string|max:255',
-            'menu_zone' => 'required|string|in:main,about-us',
+            'menu_zone' => 'nullable|string|in:main',
             'parent_id' => 'nullable|integer|exists:menu_items,id',
             'page_key' => 'nullable|string|max:120',
             'sort_order' => 'nullable|integer|min:0',
@@ -136,7 +131,7 @@ class MenuItemController extends Controller
 
         $validated['label'] = trim((string) $validated['label']);
         $validated['url'] = trim((string) $validated['url']);
-        $validated['menu_zone'] = trim((string) $validated['menu_zone']);
+        $validated['menu_zone'] = MenuItem::ZONE_MAIN;
         $validated['parent_id'] = !empty($validated['parent_id']) ? (int) $validated['parent_id'] : null;
         $validated['page_key'] = empty($validated['page_key']) ? null : trim((string) $validated['page_key']);
         $validated['sort_order'] = (int) ($validated['sort_order'] ?? 0);
@@ -183,6 +178,7 @@ class MenuItemController extends Controller
     private function getParentOptions(?MenuItem $editingMenu = null)
     {
         return MenuItem::query()
+            ->inZone(MenuItem::ZONE_MAIN)
             ->topLevel()
             ->when($editingMenu instanceof MenuItem, function ($query) use ($editingMenu) {
                 $query->where('id', '!=', $editingMenu->id);

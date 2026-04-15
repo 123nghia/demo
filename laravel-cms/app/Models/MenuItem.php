@@ -10,7 +10,6 @@ class MenuItem extends Model
     use HasFactory;
 
     public const ZONE_MAIN = 'main';
-    public const ZONE_ABOUT_US = 'about-us';
 
     /**
      * @var array<int, string>
@@ -41,7 +40,6 @@ class MenuItem extends Model
     {
         return [
             static::ZONE_MAIN => 'Menu chính (Header)',
-            static::ZONE_ABOUT_US => 'Menu About Us',
         ];
     }
 

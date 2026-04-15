@@ -1,7 +1,6 @@
 @php
     /** @var \App\Models\MenuItem|null $menuItem */
     $menuItem = $menuItem ?? null;
-    $zones = $zones ?? \App\Models\MenuItem::zones();
     $parentOptions = $parentOptions ?? collect();
 @endphp
 
@@ -19,14 +18,9 @@
     </div>
 
     <div class="col-md-4">
-        <label class="form-label" for="menu_zone">Vùng menu</label>
-        <select class="form-select" id="menu_zone" name="menu_zone" required>
-            @foreach ($zones as $zoneValue => $zoneLabel)
-                <option value="{{ $zoneValue }}" @selected(old('menu_zone', $menuItem->menu_zone ?? 'main') === $zoneValue)>
-                    {{ $zoneLabel }}
-                </option>
-            @endforeach
-        </select>
+        <label class="form-label" for="menu_zone_display">Vùng menu</label>
+        <input class="form-control" id="menu_zone_display" type="text" value="Menu chính (Header)" readonly>
+        <input type="hidden" name="menu_zone" value="main">
     </div>
 
     <div class="col-md-4">
@@ -36,7 +30,6 @@
             @foreach ($parentOptions as $parent)
                 <option value="{{ $parent->id }}" @selected((string) old('parent_id', $menuItem->parent_id ?? '') === (string) $parent->id)>
                     {{ $parent->label }}
-                    ({{ $zones[$parent->menu_zone] ?? $parent->menu_zone }})
                 </option>
             @endforeach
         </select>

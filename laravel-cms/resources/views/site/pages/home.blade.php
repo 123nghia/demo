@@ -8,11 +8,53 @@
 @section('page_key', 'home')
 @section('inline_footer', '1')
 
+@php
+    $homeHighlightsForNav = collect();
+
+    if (isset($homeProjectHighlights)) {
+        $homeHighlightsForNav = collect($homeProjectHighlights);
+    } else {
+        try {
+            $homeHighlightsForNav = \App\Models\ProjectDetailPage::query()
+                ->published()
+                ->whereNotNull('thumbnail_image')
+                ->where('thumbnail_image', '!=', '')
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'slug', 'is_published']);
+                    },
+                ])
+                ->ordered()
+                ->limit(12)
+                ->get();
+        } catch (\Throwable $exception) {
+            $homeHighlightsForNav = collect();
+        }
+    }
+
+    $eligibleHomeHighlightCount = $homeHighlightsForNav
+        ->filter(function ($item) {
+            return !empty(data_get($item, 'title'))
+                && (!empty(data_get($item, 'thumbnail_image')) || !empty(data_get($item, 'project.cover_image')));
+        })
+        ->count();
+
+    $hasProjectsSection1ForNav = $eligibleHomeHighlightCount > 0;
+    $hasProjectsSection2ForNav = $eligibleHomeHighlightCount > 6;
+@endphp
+
 @section('before_main')
     <nav class="section-dots" aria-label="Điều hướng section">
         <a href="#hero" class="section-dots__dot is-active" data-dot="hero" aria-label="Hero"></a>
-        <a href="#projects-1" class="section-dots__dot" data-dot="projects-1" aria-label="Dự án 1"></a>
-        <a href="#projects-2" class="section-dots__dot" data-dot="projects-2" aria-label="Dự án 2"></a>
+        @if ($hasProjectsSection1ForNav)
+            <a href="#projects-1" class="section-dots__dot" data-dot="projects-1" aria-label="Dự án 1"></a>
+        @endif
+        @if ($hasProjectsSection2ForNav)
+            <a href="#projects-2" class="section-dots__dot" data-dot="projects-2" aria-label="Dự án 2"></a>
+        @endif
         <a href="#profile" class="section-dots__dot" data-dot="profile" aria-label="Hồ sơ năng lực"></a>
         <a href="#about" class="section-dots__dot" data-dot="about" aria-label="Giới thiệu"></a>
         <a href="#footer" class="section-dots__dot" data-dot="footer" aria-label="Liên hệ"></a>
@@ -21,7 +63,6 @@
 
 @section('content')
     @php
-        $projectDetailUrl = url('/biet-thu-don-lap-m07-l14-dtm-duong-noi');
         if (!is_array($homeContent ?? null)) {
             try {
                 $homeContent = \App\Models\SiteSetting::homeContent();
@@ -36,24 +77,6 @@
         $footerCta = data_get($homeContent, 'footer_cta', []);
         $consultCta = data_get($footerCta, 'consult', []);
         $partnerCta = data_get($footerCta, 'partner', []);
-
-        $fallbackSection1 = [
-            ['image' => 'hovi-002.jpg', 'title' => 'Tổ hợp biệt thự BT61-62-63, Starlake', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-003.jpg', 'title' => 'BIỆT THỰ SONG LẬP BT48-56, LOUIS CITY', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-004.jpg', 'title' => 'BT ĐƠN LẬP NT18-01, VINHOMES OCEAN PARK', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-005.jpg', 'title' => 'BIỆT THỰ ĐƠN LẬP GV12-09, VINHOMES GREEN VILLAS', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-006.jpg', 'title' => 'HAI BIỆT THỰ ĐƠN LẬP ĐẬP THÔNG, VINHOMES GREENVILLAS', 'desc' => 'Vinhomes Green Villas'],
-            ['image' => 'hovi-007.jpg', 'title' => 'TỔ HỢP 4 BIỆT THỰ VINHOMES RIVERSIDE ĐẬP THÔNG', 'desc' => 'Vinhomes Riverside'],
-        ];
-
-        $fallbackSection2 = [
-            ['image' => 'hovi-008.jpg', 'title' => 'BIỆT THỰ ĐƠN LẬP BT46-47, KĐT STARLAKE', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-009.jpg', 'title' => 'PENTHOUSE CAO CẤP, MỸ ĐÌNH PEARL', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-010.jpg', 'title' => 'BIỆT THỰ ĐƠN LẬP 64-K7, KĐT STARLAKE', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-011.jpg', 'title' => 'BIỆT THỰ ĐƠN LẬP 2-6, KĐT PARK CITY', 'desc' => 'Dự án thiết kế'],
-            ['image' => 'hovi-012.jpg', 'title' => 'BIỆT THỰ ĐƠN LẬP AD6-06, KĐT VINHOMES RIVERSIDE', 'desc' => 'Dự án thi công'],
-            ['image' => 'hovi-013.jpg', 'title' => 'BIỆT THỰ ĐƠN LẬP 41-42 K7, KĐT STARLAKE', 'desc' => 'Dự án thiết kế'],
-        ];
 
         $toImageUrl = function ($value, $fallback = null) {
             $raw = trim((string) $value);
@@ -81,21 +104,21 @@
             return url('/' . ltrim($raw, '/'));
         };
 
-        $fallbackCards = collect(array_merge($fallbackSection1, $fallbackSection2))->map(function ($item) use ($projectDetailUrl) {
-            return [
-                'image' => '/theme/assets/hovi/gallery/' . $item['image'],
-                'title' => $item['title'],
-                'desc' => $item['desc'],
-                'url' => $projectDetailUrl,
-                'action' => 'link',
-            ];
-        });
-
-        $homeProjectHighlights = collect($homeProjectHighlights ?? []);
+        $homeProjectHighlights = $homeHighlightsForNav;
 
         $cards = $homeProjectHighlights
             ->map(function ($item) use ($toImageUrl) {
+                $resolvedUrl = trim((string) data_get($item, 'url'));
+                $resolvedSlug = trim((string) data_get($item, 'slug'), '/');
                 $action = data_get($item, 'thumbnail_click_action') === 'lightbox' ? 'lightbox' : 'link';
+
+                if ($action === 'link' && $resolvedUrl === '' && $resolvedSlug !== '') {
+                    $resolvedUrl = url('/' . $resolvedSlug);
+                }
+
+                if ($action === 'link' && $resolvedUrl === '') {
+                    $action = 'lightbox';
+                }
 
                 return [
                     'image' => $toImageUrl(
@@ -103,8 +126,8 @@
                         $toImageUrl(data_get($item, 'project.cover_image'))
                     ),
                     'title' => data_get($item, 'title'),
-                    'desc' => data_get($item, 'project.name', 'Dự án thiết kế'),
-                    'url' => $action === 'link' ? url('/' . ltrim((string) data_get($item, 'slug'), '/')) : null,
+                    'desc' => data_get($item, 'description', data_get($item, 'summary', data_get($item, 'project.name', 'Dự án thiết kế'))),
+                    'url' => $action === 'link' ? $resolvedUrl : null,
                     'action' => $action,
                 ];
             })
@@ -113,20 +136,12 @@
             })
             ->values();
 
-        if ($cards->isEmpty()) {
-            $cards = $fallbackCards;
-        }
-
-        if ($cards->isNotEmpty()) {
-            while ($cards->count() < 12) {
-                $cards = $cards->merge($cards);
-            }
-
-            $cards = $cards->take(12)->values();
-        }
+        $cards = $cards->take(12)->values();
 
         $projectsSection1 = $cards->take(6)->values();
+        $hasProjectsSection1 = $projectsSection1->isNotEmpty();
         $projectsSection2 = $cards->slice(6, 6)->values();
+        $hasProjectsSection2 = $projectsSection2->isNotEmpty();
 
         $sliderImages = collect(data_get($profileContent, 'slider_images', []))
             ->map(function ($image) use ($toImageUrl) {
@@ -143,7 +158,8 @@
         }
 
         $heroBackgroundImage = $toImageUrl(data_get($heroContent, 'background_image'), '/theme/assets/hero.jpg');
-        $heroScrollTarget = $toHref(data_get($heroContent, 'scroll_target'), '#projects-1');
+        $heroDefaultScrollTarget = $hasProjectsSection1 ? '#projects-1' : '#profile';
+        $heroScrollTarget = $toHref(data_get($heroContent, 'scroll_target'), $heroDefaultScrollTarget);
 
         $profileBackgroundImage = $toImageUrl(data_get($profileContent, 'background_image'), '/theme/assets/hovi/gallery/hovi-060.jpg');
         $profileEyebrow = data_get($profileContent, 'eyebrow', 'Hồ sơ năng lực');
@@ -199,51 +215,55 @@
             </a>
         </section>
 
-        <section class="section project-section" id="projects-1" data-section="projects-1">
-            <div class="project-grid">
-                @foreach ($projectsSection1 as $project)
-                    @php $cardAction = $project['action'] ?? 'link'; @endphp
-                    <article class="project-card"
-                        @if ($cardAction === 'lightbox')
-                            data-image-preview="{{ $project['image'] }}" data-image-preview-title="{{ $project['title'] }}"
-                        @else
-                            data-hover-redirect="{{ $project['url'] }}"
-                        @endif>
-                        <img src="{{ $project['image'] }}" alt="{{ $project['title'] }}">
-                        <div class="project-card__content">
+        @if ($hasProjectsSection1)
+            <section class="section project-section" id="projects-1" data-section="projects-1">
+                <div class="project-grid">
+                    @foreach ($projectsSection1 as $project)
+                        @php $cardAction = $project['action'] ?? 'link'; @endphp
+                        <article class="project-card"
                             @if ($cardAction === 'lightbox')
-                                <span class="project-card__mode">Xem ảnh</span>
-                            @endif
-                            <h2>{{ $project['title'] }}</h2>
-                            <p>{{ $project['desc'] }}</p>
-                        </div>
-                    </article>
-                @endforeach
-            </div>
-        </section>
+                                data-image-preview="{{ $project['image'] }}" data-image-preview-title="{{ $project['title'] }}"
+                            @else
+                                data-hover-redirect="{{ $project['url'] }}"
+                            @endif>
+                            <img src="{{ $project['image'] }}" alt="{{ $project['title'] }}">
+                            <div class="project-card__content">
+                                @if ($cardAction === 'lightbox')
+                                    <span class="project-card__mode">Xem ảnh</span>
+                                @endif
+                                <h2>{{ $project['title'] }}</h2>
+                                <p>{{ $project['desc'] }}</p>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
 
-        <section class="section project-section" id="projects-2" data-section="projects-2">
-            <div class="project-grid">
-                @foreach ($projectsSection2 as $project)
-                    @php $cardAction = $project['action'] ?? 'link'; @endphp
-                    <article class="project-card"
-                        @if ($cardAction === 'lightbox')
-                            data-image-preview="{{ $project['image'] }}" data-image-preview-title="{{ $project['title'] }}"
-                        @else
-                            data-hover-redirect="{{ $project['url'] }}"
-                        @endif>
-                        <img src="{{ $project['image'] }}" alt="{{ $project['title'] }}">
-                        <div class="project-card__content">
+        @if ($hasProjectsSection2)
+            <section class="section project-section" id="projects-2" data-section="projects-2">
+                <div class="project-grid">
+                    @foreach ($projectsSection2 as $project)
+                        @php $cardAction = $project['action'] ?? 'link'; @endphp
+                        <article class="project-card"
                             @if ($cardAction === 'lightbox')
-                                <span class="project-card__mode">Xem ảnh</span>
-                            @endif
-                            <h2>{{ $project['title'] }}</h2>
-                            <p>{{ $project['desc'] }}</p>
-                        </div>
-                    </article>
-                @endforeach
-            </div>
-        </section>
+                                data-image-preview="{{ $project['image'] }}" data-image-preview-title="{{ $project['title'] }}"
+                            @else
+                                data-hover-redirect="{{ $project['url'] }}"
+                            @endif>
+                            <img src="{{ $project['image'] }}" alt="{{ $project['title'] }}">
+                            <div class="project-card__content">
+                                @if ($cardAction === 'lightbox')
+                                    <span class="project-card__mode">Xem ảnh</span>
+                                @endif
+                                <h2>{{ $project['title'] }}</h2>
+                                <p>{{ $project['desc'] }}</p>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
 
         <section class="section profile-section" id="profile" data-section="profile"
             style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.38)), url('{{ $profileBackgroundImage }}') center center / cover no-repeat;">

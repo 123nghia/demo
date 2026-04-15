@@ -4,31 +4,17 @@
 
 @section('content')
     @php
-        $zoneFilter = $zoneFilter ?? 'all';
         $zones = $zones ?? \App\Models\MenuItem::zones();
     @endphp
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h1 class="h3 mb-1">Quản lý menu</h1>
-            <p class="text-muted mb-0">Quản lý menu theo vùng, menu cha và menu con để admin thao tác nhanh hơn.</p>
+            <p class="text-muted mb-0">Quản lý Menu chính (Header), menu cha và menu con để admin thao tác nhanh hơn.</p>
         </div>
 
         <a class="btn btn-dark" href="{{ route('admin.menu-items.create') }}">+ Thêm mục menu</a>
     </div>
-
-    <ul class="nav nav-pills mb-3">
-        <li class="nav-item">
-            <a class="nav-link {{ $zoneFilter === 'all' ? 'active' : '' }}"
-                href="{{ route('admin.menu-items.index', ['menu_zone' => 'all']) }}">Tất cả vùng menu</a>
-        </li>
-        @foreach ($zones as $zoneValue => $zoneLabel)
-            <li class="nav-item">
-                <a class="nav-link {{ $zoneFilter === $zoneValue ? 'active' : '' }}"
-                    href="{{ route('admin.menu-items.index', ['menu_zone' => $zoneValue]) }}">{{ $zoneLabel }}</a>
-            </li>
-        @endforeach
-    </ul>
 
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
@@ -36,7 +22,6 @@
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
-                        <th>Vùng</th>
                         <th>Cấp menu</th>
                         <th>Tên menu</th>
                         <th>URL</th>
@@ -50,14 +35,10 @@
                     @forelse ($menuItems as $menuItem)
                         @php
                             $isChild = !is_null($menuItem->parent_id);
-                            $zoneLabel = $zones[$menuItem->menu_zone] ?? $menuItem->menu_zone;
                         @endphp
 
                         <tr>
                             <td>{{ $menuItem->id }}</td>
-                            <td>
-                                <span class="badge text-bg-light border">{{ $zoneLabel }}</span>
-                            </td>
                             <td>
                                 @if ($isChild)
                                     <span class="badge text-bg-info">Menu con</span>
@@ -104,7 +85,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">Chưa có mục menu nào.</td>
+                            <td colspan="8" class="text-center py-4 text-muted">Chưa có mục menu nào.</td>
                         </tr>
                     @endforelse
                 </tbody>

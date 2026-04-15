@@ -370,6 +370,64 @@ function initDetailGalleryLightbox() {
   });
 }
 
+function stabilizeProjectDetailLayout() {
+  if (!root.classList.contains("project-detail-page")) return;
+
+  const detailMain = document.querySelector(".detail-main");
+  if (!detailMain) {
+    root.classList.add("detail-layout-ready");
+    return;
+  }
+
+  const layoutCriticalImages = [
+    ...detailMain.querySelectorAll(".detail-gallery__item img, .editor-render-content img, .detail-related__card img"),
+  ];
+
+  if (!layoutCriticalImages.length) {
+    root.classList.add("detail-layout-ready");
+    return;
+  }
+
+  const waitForImage = (image) =>
+    new Promise((resolve) => {
+      if (image.complete && image.naturalWidth > 0) {
+        resolve();
+        return;
+      }
+
+      const done = () => {
+        image.removeEventListener("load", done);
+        image.removeEventListener("error", done);
+        resolve();
+      };
+
+      image.addEventListener("load", done, {
+        once: true,
+      });
+
+      image.addEventListener("error", done, {
+        once: true,
+      });
+    });
+
+  const revealLayout = () => {
+    root.classList.add("detail-layout-ready");
+  };
+
+  const prioritizedImages = layoutCriticalImages.slice(0, 4);
+
+  Promise.race([
+    Promise.all(prioritizedImages.map(waitForImage)),
+    new Promise((resolve) => {
+      window.setTimeout(resolve, 1400);
+    }),
+  ]).then(revealLayout);
+
+  window.addEventListener("load", revealLayout, {
+    once: true,
+  });
+}
+
 function initContactFormEnhancements() {
   const contactForms = [...document.querySelectorAll('form.contact-form[action*="contact-submit"]')];
   if (!contactForms.length) return;
@@ -637,6 +695,7 @@ document.addEventListener("keydown", (event) => {
 observeSections();
 smoothAnchorLinks();
 bindHoverRedirects();
+stabilizeProjectDetailLayout();
 initHomeImagePreviewCards();
 initDetailGalleryLightbox();
 initContactFormEnhancements();

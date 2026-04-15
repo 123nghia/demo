@@ -259,6 +259,11 @@ class SiteSetting extends Model
                     'background_image' => '/theme/assets/hovi/gallery/hovi-055.jpg',
                 ],
             ],
+            'project_highlights' => [
+                'mode' => 'auto',
+                'items' => [],
+                'auto_excluded_detail_page_ids' => [],
+            ],
         ];
     }
 
@@ -342,6 +347,31 @@ class SiteSetting extends Model
             $merged['about']['stats'] = array_values(array_filter($aboutStats, function ($value) {
                 return is_array($value);
             }));
+        }
+
+        $projectHighlightsMode = data_get($decoded, 'project_highlights.mode');
+        if (in_array($projectHighlightsMode, ['auto', 'manual'], true)) {
+            $merged['project_highlights']['mode'] = $projectHighlightsMode;
+        }
+
+        $projectHighlightItems = data_get($decoded, 'project_highlights.items');
+        if (is_array($projectHighlightItems)) {
+            $merged['project_highlights']['items'] = array_values(array_filter($projectHighlightItems, function ($value) {
+                return is_array($value);
+            }));
+        }
+
+        $autoExcludedDetailPageIds = data_get($decoded, 'project_highlights.auto_excluded_detail_page_ids');
+        if (is_array($autoExcludedDetailPageIds)) {
+            $merged['project_highlights']['auto_excluded_detail_page_ids'] = array_values(array_unique(array_filter(array_map(function ($value) {
+                if (is_string($value)) {
+                    $value = trim($value);
+                }
+
+                return is_numeric($value) ? (int) $value : null;
+            }, $autoExcludedDetailPageIds), function ($value) {
+                return is_int($value) && $value > 0;
+            })));
         }
 
         return $merged;

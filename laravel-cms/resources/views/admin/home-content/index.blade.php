@@ -106,6 +106,36 @@
         .home-slider-row .home-preview-box {
             background: #ffffff;
         }
+
+        .home-highlight-mode-group .form-check {
+            border: 1px solid #dbe5f0;
+            border-radius: 10px;
+            padding: .55rem .85rem;
+            background: #fff;
+            min-width: 230px;
+        }
+
+        .home-highlight-row {
+            border: 1px solid #dbe5f0;
+            border-radius: 12px;
+            padding: .62rem;
+            background: linear-gradient(180deg, #fbfdff 0%, #f4f8fc 100%);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, .04);
+        }
+
+        .home-highlight-row .home-preview-box {
+            background: #ffffff;
+        }
+
+        .home-highlight-link-settings {
+            border-top: 1px dashed #dbe5f0;
+            margin-top: .25rem;
+            padding-top: .65rem;
+        }
+
+        .home-highlight-link-settings .form-text {
+            font-size: .76rem;
+        }
     </style>
 @endpush
 
@@ -129,6 +159,90 @@
         if (empty($sliderRows)) {
             $sliderRows = [''];
         }
+
+        $projectLinkSources = $projectLinkSources ?? [
+            'detail' => collect(),
+            'project' => collect(),
+            'blog' => collect(),
+            'video' => collect(),
+        ];
+
+        $projectHighlightsConfig = data_get($homeContent, 'project_highlights', []);
+        $projectHighlightMode = old('project_highlights_mode', data_get($projectHighlightsConfig, 'mode', 'manual'));
+        if (!in_array($projectHighlightMode, ['auto', 'manual'], true)) {
+            $projectHighlightMode = 'manual';
+        }
+
+        $highlightTitlesInput = old('project_highlight_titles');
+        $projectHighlightRows = [];
+
+        if (is_array($highlightTitlesInput)) {
+            $highlightDescriptionsInput = old('project_highlight_descriptions', []);
+            $highlightImagesInput = old('project_highlight_images', []);
+            $highlightActionsInput = old('project_highlight_actions', []);
+            $highlightLinkTypesInput = old('project_highlight_link_types', []);
+            $highlightLinkValuesInput = old('project_highlight_link_values', []);
+
+            $maxHighlightRows = max(
+                count($highlightTitlesInput),
+                is_array($highlightDescriptionsInput) ? count($highlightDescriptionsInput) : 0,
+                is_array($highlightImagesInput) ? count($highlightImagesInput) : 0,
+                is_array($highlightActionsInput) ? count($highlightActionsInput) : 0,
+                is_array($highlightLinkTypesInput) ? count($highlightLinkTypesInput) : 0,
+                is_array($highlightLinkValuesInput) ? count($highlightLinkValuesInput) : 0
+            );
+
+            for ($index = 0; $index < $maxHighlightRows; $index++) {
+                $projectHighlightRows[] = [
+                    'title' => data_get($highlightTitlesInput, $index),
+                    'description' => data_get($highlightDescriptionsInput, $index),
+                    'image' => data_get($highlightImagesInput, $index),
+                    'action' => data_get($highlightActionsInput, $index),
+                    'link_type' => data_get($highlightLinkTypesInput, $index),
+                    'link_value' => data_get($highlightLinkValuesInput, $index),
+                ];
+            }
+        } else {
+            $projectHighlightRows = array_values(array_filter((array) data_get($projectHighlightsConfig, 'items', []), function ($item) {
+                return is_array($item);
+            }));
+        }
+
+        $projectHighlightRows = array_map(function ($row) {
+            $action = data_get($row, 'action') === 'lightbox' ? 'lightbox' : 'link';
+
+            return [
+                'title' => is_string(data_get($row, 'title')) ? trim((string) data_get($row, 'title')) : '',
+                'description' => is_string(data_get($row, 'description')) ? trim((string) data_get($row, 'description')) : '',
+                'image' => is_string(data_get($row, 'image')) ? trim((string) data_get($row, 'image')) : '',
+                'action' => $action,
+                'link_type' => is_string(data_get($row, 'link_type')) ? trim((string) data_get($row, 'link_type')) : '',
+                'link_value' => data_get($row, 'link_value'),
+            ];
+        }, $projectHighlightRows);
+
+        if (empty($projectHighlightRows)) {
+            $projectHighlightRows = [
+                [
+                    'title' => '',
+                    'description' => '',
+                    'image' => '',
+                    'action' => 'link',
+                    'link_type' => '',
+                    'link_value' => null,
+                ],
+            ];
+        }
+
+        $autoExcludedDetailPageIds = array_values(array_unique(array_filter(array_map(function ($value) {
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+
+            return is_numeric($value) ? (int) $value : null;
+        }, (array) ($autoExcludedDetailPageIds ?? data_get($homeContent, 'project_highlights.auto_excluded_detail_page_ids', []))), function ($value) {
+            return is_int($value) && $value > 0;
+        })));
     @endphp
 
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -136,7 +250,11 @@
             <h1 class="h3 mb-1">Nội dung Trang chủ</h1>
             <p class="text-muted mb-0">Quản trị Hero, Hồ sơ năng lực, Về HOVI và CTA footer theo chuẩn chuyên nghiệp.</p>
         </div>
-        <a class="btn btn-outline-dark" href="{{ route('admin.projects.index') }}">Đi đến Quản trị dự án</a>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a class="btn btn-outline-primary" href="#home-highlight-manual-panel">Đi tới mục thủ công</a>
+            <a class="btn btn-outline-secondary" href="#home-auto-source-section">Đi tới nguồn tự động</a>
+            <a class="btn btn-outline-dark" href="{{ route('admin.projects.index') }}">Đi đến Quản trị dự án</a>
+        </div>
     </div>
 
     <form action="{{ route('admin.home-content.update') }}" method="post" enctype="multipart/form-data"
@@ -485,6 +603,177 @@
             </div>
         </div>
 
+        <div class="card home-config-card">
+            <div class="card-header">5) Thumbnail thủ công (admin chủ động thêm)</div>
+            <div class="card-body row g-3">
+                <div class="col-12">
+                    <input type="hidden" name="project_highlights_mode" value="manual">
+                    <label class="form-label d-block mb-1">Danh sách card thumbnail thêm thủ công</label>
+                    <div class="small text-muted">
+                        Mục này là khu riêng để admin chủ động thêm / xóa item. Card thủ công sẽ được ưu tiên hiển thị trước trên Trang chủ.
+                    </div>
+                    @error('project_highlights_mode')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-12" id="home-highlight-manual-panel">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+                        <label class="form-label mb-0">Danh sách item thumbnail thủ công</label>
+                        <button type="button" class="btn btn-sm btn-outline-dark" data-add-highlight-row>+ Thêm item</button>
+                    </div>
+
+                    <div id="home-highlight-rows" class="d-grid gap-2">
+                        @foreach ($projectHighlightRows as $index => $highlightRow)
+                            @php
+                                $highlightImage = is_string(data_get($highlightRow, 'image')) ? trim((string) data_get($highlightRow, 'image')) : '';
+                                $highlightTitle = is_string(data_get($highlightRow, 'title')) ? trim((string) data_get($highlightRow, 'title')) : '';
+                                $highlightDescription = is_string(data_get($highlightRow, 'description')) ? trim((string) data_get($highlightRow, 'description')) : '';
+                                $highlightAction = data_get($highlightRow, 'action') === 'lightbox' ? 'lightbox' : 'link';
+                                $highlightLinkType = is_string(data_get($highlightRow, 'link_type')) ? trim((string) data_get($highlightRow, 'link_type')) : '';
+                                $highlightLinkValue = data_get($highlightRow, 'link_value');
+                                $isLinkAction = $highlightAction === 'link';
+                                $highlightPreviewId = 'home-highlight-preview-' . $index;
+                                $highlightMetaId = 'home-highlight-meta-' . $index;
+                            @endphp
+
+                            <div class="row g-2 align-items-start js-home-highlight-row js-home-image-container home-highlight-row">
+                                <div class="col-md-6 js-home-image-field">
+                                    <label class="form-label small mb-1">Ảnh thumbnail #<span
+                                            class="js-home-highlight-row-index">{{ $index + 1 }}</span></label>
+                                    <input class="form-control form-control-sm js-home-image-path" type="text"
+                                        name="project_highlight_images[]" value="{{ $highlightImage }}"
+                                        placeholder="/uploads/home/thumbnail.jpg" data-preview-id="{{ $highlightPreviewId }}"
+                                        data-meta-id="{{ $highlightMetaId }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1">Upload thumbnail</label>
+                                    <input class="form-control form-control-sm js-home-image-file" type="file"
+                                        name="project_highlight_image_files[]" accept="image/*"
+                                        data-preview-id="{{ $highlightPreviewId }}" data-meta-id="{{ $highlightMetaId }}">
+                                </div>
+                                <div class="col-md-2 d-grid">
+                                    <label class="form-label small mb-1 invisible">Xóa</label>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-remove-highlight-row>Xóa item</button>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="home-preview-box py-2">
+                                        <img id="{{ $highlightPreviewId }}" src="{{ $highlightImage }}"
+                                            alt="Preview highlight {{ $index + 1 }}"
+                                            style="{{ $highlightImage === '' ? 'display:none;' : '' }}">
+                                        <div id="{{ $highlightMetaId }}" class="small text-muted mt-2">
+                                            {{ $highlightImage === '' ? 'Chưa có ảnh.' : 'Đang đọc thông tin ảnh...' }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small mb-1">Tiêu đề card</label>
+                                    <input class="form-control form-control-sm" type="text" name="project_highlight_titles[]"
+                                        value="{{ $highlightTitle }}" placeholder="Ví dụ: Biệt thự sân vườn cao cấp">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small mb-1">Mô tả ngắn</label>
+                                    <input class="form-control form-control-sm" type="text"
+                                        name="project_highlight_descriptions[]" value="{{ $highlightDescription }}"
+                                        placeholder="Ví dụ: Dự án thiết kế và thi công trọn gói">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1">Hành vi click</label>
+                                    <select class="form-select form-select-sm" name="project_highlight_actions[]"
+                                        data-highlight-action>
+                                        <option value="link" {{ $highlightAction === 'link' ? 'selected' : '' }}>Mở liên kết</option>
+                                        <option value="lightbox" {{ $highlightAction === 'lightbox' ? 'selected' : '' }}>Zoom ảnh (không link)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-9 js-home-highlight-link-settings {{ $isLinkAction ? '' : 'd-none' }}"
+                                    data-highlight-link-settings>
+                                    <div class="row g-2 home-highlight-link-settings">
+                                        <div class="col-md-4">
+                                            <label class="form-label small mb-1">Nguồn liên kết</label>
+                                            <select class="form-select form-select-sm" name="project_highlight_link_types[]"
+                                                data-highlight-link-type {{ $isLinkAction ? '' : 'disabled' }}>
+                                                <option value="">-- Chọn loại nội dung --</option>
+                                                <option value="detail" {{ $highlightLinkType === 'detail' ? 'selected' : '' }}>Trang chi tiết dự án</option>
+                                                <option value="project" {{ $highlightLinkType === 'project' ? 'selected' : '' }}>Dự án</option>
+                                                <option value="blog" {{ $highlightLinkType === 'blog' ? 'selected' : '' }}>Blog</option>
+                                                <option value="video" {{ $highlightLinkType === 'video' ? 'selected' : '' }}>Video</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label small mb-1">Nội dung mở khi click</label>
+                                            <select class="form-select form-select-sm" name="project_highlight_link_values[]"
+                                                data-highlight-link-value {{ $isLinkAction ? '' : 'disabled' }}>
+                                                <option value="">-- Chọn nội dung để mở --</option>
+                                                @foreach (($projectLinkSources['detail'] ?? collect()) as $detail)
+                                                    <option value="{{ $detail->id }}" data-link-type="detail"
+                                                        {{ $highlightLinkType === 'detail' && (string) $highlightLinkValue === (string) $detail->id ? 'selected' : '' }}>
+                                                        [Trang chi tiết] {{ $detail->title }}
+                                                        @if ($detail->project)
+                                                            · {{ $detail->project->name }}
+                                                        @endif
+                                                    </option>
+                                                @endforeach
+                                                @foreach (($projectLinkSources['project'] ?? collect()) as $projectLink)
+                                                    <option value="{{ $projectLink->id }}" data-link-type="project"
+                                                        {{ $highlightLinkType === 'project' && (string) $highlightLinkValue === (string) $projectLink->id ? 'selected' : '' }}>
+                                                        [Dự án] {{ $projectLink->name }}
+                                                    </option>
+                                                @endforeach
+                                                @foreach (($projectLinkSources['blog'] ?? collect()) as $blogLink)
+                                                    <option value="{{ $blogLink->id }}" data-link-type="blog"
+                                                        {{ $highlightLinkType === 'blog' && (string) $highlightLinkValue === (string) $blogLink->id ? 'selected' : '' }}>
+                                                        [Blog] {{ $blogLink->title }}
+                                                    </option>
+                                                @endforeach
+                                                @foreach (($projectLinkSources['video'] ?? collect()) as $videoLink)
+                                                    <option value="{{ $videoLink->id }}" data-link-type="video"
+                                                        {{ $highlightLinkType === 'video' && (string) $highlightLinkValue === (string) $videoLink->id ? 'selected' : '' }}>
+                                                        [Video] {{ $videoLink->title }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <div class="form-text">Nếu chọn "Zoom ảnh", card sẽ không điều hướng mà mở ảnh phóng to.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @error('project_highlight_titles')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_titles.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_descriptions.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_images.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_image_files.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_actions.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_link_types.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                    @error('project_highlight_link_values.*')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+
+                    <div class="form-text">Khuyến nghị mỗi thumbnail card: <strong>1200 × 1600 px</strong> (tỷ lệ 3:4), tối đa 5MB.</div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex justify-content-end">
             <button class="btn btn-dark px-4" type="submit">Lưu nội dung Trang chủ</button>
         </div>
@@ -493,10 +782,13 @@
     <div class="alert alert-info">
         <strong>Chuẩn ảnh khuyến nghị:</strong> 1200 × 1600 px (tỷ lệ 3:4), tối đa 5MB, ưu tiên JPG/WebP.
         <br>
-        <span class="small">Muốn card hiển thị trên trang chủ: Trang chi tiết <code>Đang bật</code> + Dự án cha <code>Đang bật</code> + có thumbnail.</span>
+        <span class="small">
+            Item thêm thủ công sẽ được ưu tiên hiển thị trước trên Trang chủ.
+            Bảng bên dưới là nguồn tự động từ Trang chi tiết <code>Đang bật</code> + Dự án cha <code>Đang bật</code> + có thumbnail.
+        </span>
     </div>
 
-    <h2 class="h5 mb-3">Nguồn thumbnail khối dự án trên Trang chủ</h2>
+    <h2 id="home-auto-source-section" class="h5 mb-3">Nguồn thumbnail tự động (tham khảo)</h2>
 
     <div class="home-content-stats mb-3">
         <div class="home-content-stat">
@@ -534,6 +826,9 @@
                 </thead>
                 <tbody>
                     @forelse ($homeItems as $item)
+                        @php
+                            $isAutoExcluded = in_array((int) $item->id, $autoExcludedDetailPageIds, true);
+                        @endphp
                         <tr>
                             <td>
                                 @if (!empty($item->thumbnail_image))
@@ -567,7 +862,11 @@
                             </td>
                             <td>
                                 @if ($item->is_published && optional($item->project)->is_published)
-                                    <span class="badge text-bg-success">Đang bật</span>
+                                    @if ($isAutoExcluded)
+                                        <span class="badge text-bg-danger">Đã ẩn khỏi Trang chủ</span>
+                                    @else
+                                        <span class="badge text-bg-success">Đang bật</span>
+                                    @endif
                                 @elseif ($item->is_published)
                                     <span class="badge text-bg-warning text-dark">Cha đang ẩn</span>
                                 @else
@@ -576,6 +875,18 @@
                             </td>
                             <td>{{ $item->sort_order }}</td>
                             <td class="text-end">
+                                <form class="d-inline" action="{{ route('admin.home-content.auto-source.visibility', $item) }}"
+                                    method="post"
+                                    @if (!$isAutoExcluded)
+                                        onsubmit="return confirm('Xóa mục này khỏi hiển thị tự động trên Trang chủ?');"
+                                    @endif>
+                                    @csrf
+                                    <input type="hidden" name="action" value="{{ $isAutoExcluded ? 'include' : 'exclude' }}">
+                                    <button class="btn btn-sm {{ $isAutoExcluded ? 'btn-outline-success' : 'btn-outline-danger' }}"
+                                        type="submit">
+                                        {{ $isAutoExcluded ? 'Khôi phục hiển thị' : 'Xóa khỏi Trang chủ' }}
+                                    </button>
+                                </form>
                                 @if ($item->project)
                                     <a class="btn btn-sm btn-outline-dark"
                                         href="{{ route('admin.projects.detail-pages.edit', [$item->project, $item]) }}">Sửa thumbnail</a>
@@ -818,6 +1129,281 @@
                     sliderRowsWrapper.appendChild(row);
                     bindSliderRow(row, sliderRowsWrapper);
                     refreshSliderRowLabels(sliderRowsWrapper);
+                });
+            }
+
+            function refreshHighlightRowLabels(highlightRowsWrapper) {
+                if (!highlightRowsWrapper) {
+                    return;
+                }
+
+                highlightRowsWrapper.querySelectorAll('.js-home-highlight-row').forEach(function(row, index) {
+                    var displayIndex = index + 1;
+
+                    row.querySelectorAll('.js-home-highlight-row-index').forEach(function(label) {
+                        label.textContent = displayIndex;
+                    });
+
+                    var previewImage = row.querySelector('img[id^="home-highlight-preview-"]');
+                    if (previewImage) {
+                        previewImage.alt = 'Preview highlight ' + displayIndex;
+                    }
+                });
+            }
+
+            function syncHighlightRowLinkControls(row) {
+                if (!row) {
+                    return;
+                }
+
+                var actionSelect = row.querySelector('[data-highlight-action]');
+                var linkSettings = row.querySelector('[data-highlight-link-settings]');
+                var linkTypeSelect = row.querySelector('[data-highlight-link-type]');
+                var linkValueSelect = row.querySelector('[data-highlight-link-value]');
+
+                if (!actionSelect || !linkSettings || !linkTypeSelect || !linkValueSelect) {
+                    return;
+                }
+
+                var isLinkAction = actionSelect.value === 'link';
+                linkSettings.classList.toggle('d-none', !isLinkAction);
+                linkTypeSelect.disabled = !isLinkAction;
+                linkValueSelect.disabled = !isLinkAction;
+
+                if (!isLinkAction) {
+                    return;
+                }
+
+                var selectedLinkType = (linkTypeSelect.value || '').trim();
+                var selectedLinkValue = (linkValueSelect.value || '').trim();
+                var selectedStillVisible = selectedLinkValue === '';
+
+                Array.prototype.forEach.call(linkValueSelect.options, function(option) {
+                    if (option.value === '') {
+                        option.hidden = false;
+                        option.disabled = false;
+                        return;
+                    }
+
+                    var optionType = option.getAttribute('data-link-type') || '';
+                    var isVisible = selectedLinkType !== '' && optionType === selectedLinkType;
+                    option.hidden = !isVisible;
+                    option.disabled = !isVisible;
+
+                    if (isVisible && option.value === selectedLinkValue) {
+                        selectedStillVisible = true;
+                    }
+                });
+
+                if (!selectedStillVisible) {
+                    linkValueSelect.value = '';
+                }
+            }
+
+            function bindHighlightRow(row, highlightRowsWrapper) {
+                if (!row || row.dataset.highlightBound === '1') {
+                    return;
+                }
+
+                row.dataset.highlightBound = '1';
+
+                var imageField = row.querySelector('.js-home-image-field');
+                bindImageField(imageField);
+
+                var actionSelect = row.querySelector('[data-highlight-action]');
+                var linkTypeSelect = row.querySelector('[data-highlight-link-type]');
+                var removeBtn = row.querySelector('[data-remove-highlight-row]');
+
+                if (actionSelect) {
+                    actionSelect.addEventListener('change', function() {
+                        syncHighlightRowLinkControls(row);
+                    });
+                }
+
+                if (linkTypeSelect) {
+                    linkTypeSelect.addEventListener('change', function() {
+                        syncHighlightRowLinkControls(row);
+                    });
+                }
+
+                syncHighlightRowLinkControls(row);
+
+                if (!removeBtn) {
+                    return;
+                }
+
+                removeBtn.addEventListener('click', function() {
+                    if (!highlightRowsWrapper) {
+                        return;
+                    }
+
+                    var rows = highlightRowsWrapper.querySelectorAll('.js-home-highlight-row');
+
+                    if (rows.length <= 1) {
+                        var imagePathInput = row.querySelector('input[name="project_highlight_images[]"]');
+                        var imageFileInput = row.querySelector('input[name="project_highlight_image_files[]"]');
+                        var titleInput = row.querySelector('input[name="project_highlight_titles[]"]');
+                        var descriptionInput = row.querySelector('input[name="project_highlight_descriptions[]"]');
+                        var actionSelectInput = row.querySelector('select[name="project_highlight_actions[]"]');
+                        var linkTypeSelectInput = row.querySelector('select[name="project_highlight_link_types[]"]');
+                        var linkValueSelectInput = row.querySelector('select[name="project_highlight_link_values[]"]');
+
+                        if (imagePathInput) {
+                            imagePathInput.value = '';
+                        }
+
+                        if (imageFileInput) {
+                            imageFileInput.value = '';
+                        }
+
+                        if (titleInput) {
+                            titleInput.value = '';
+                        }
+
+                        if (descriptionInput) {
+                            descriptionInput.value = '';
+                        }
+
+                        if (actionSelectInput) {
+                            actionSelectInput.value = 'link';
+                        }
+
+                        if (linkTypeSelectInput) {
+                            linkTypeSelectInput.value = '';
+                        }
+
+                        if (linkValueSelectInput) {
+                            linkValueSelectInput.value = '';
+                        }
+
+                        var previewId = imagePathInput ? imagePathInput.getAttribute('data-preview-id') : null;
+                        var metaId = imagePathInput ? imagePathInput.getAttribute('data-meta-id') : null;
+                        var previewImg = previewId ? document.getElementById(previewId) : null;
+                        var metaEl = metaId ? document.getElementById(metaId) : null;
+
+                        if (previewImg) {
+                            previewImg.style.display = 'none';
+                            previewImg.removeAttribute('src');
+                        }
+
+                        if (metaEl) {
+                            metaEl.textContent = 'Chưa có ảnh.';
+                        }
+
+                        syncHighlightRowLinkControls(row);
+                        refreshHighlightRowLabels(highlightRowsWrapper);
+
+                        return;
+                    }
+
+                    row.remove();
+                    refreshHighlightRowLabels(highlightRowsWrapper);
+                });
+            }
+
+            function createHighlightRow(index, highlightRowsWrapper) {
+                if (!highlightRowsWrapper) {
+                    return null;
+                }
+
+                var firstRow = highlightRowsWrapper.querySelector('.js-home-highlight-row');
+                if (!firstRow) {
+                    return null;
+                }
+
+                var row = firstRow.cloneNode(true);
+                delete row.dataset.highlightBound;
+
+                var previewId = 'home-highlight-preview-' + index;
+                var metaId = 'home-highlight-meta-' + index;
+
+                var imageField = row.querySelector('.js-home-image-field');
+                if (imageField) {
+                    delete imageField.dataset.previewBound;
+                }
+
+                var imagePathInput = row.querySelector('input[name="project_highlight_images[]"]');
+                if (imagePathInput) {
+                    imagePathInput.value = '';
+                    imagePathInput.setAttribute('data-preview-id', previewId);
+                    imagePathInput.setAttribute('data-meta-id', metaId);
+                }
+
+                var imageFileInput = row.querySelector('input[name="project_highlight_image_files[]"]');
+                if (imageFileInput) {
+                    imageFileInput.value = '';
+                    imageFileInput.setAttribute('data-preview-id', previewId);
+                    imageFileInput.setAttribute('data-meta-id', metaId);
+                }
+
+                var titleInput = row.querySelector('input[name="project_highlight_titles[]"]');
+                if (titleInput) {
+                    titleInput.value = '';
+                }
+
+                var descriptionInput = row.querySelector('input[name="project_highlight_descriptions[]"]');
+                if (descriptionInput) {
+                    descriptionInput.value = '';
+                }
+
+                var actionSelect = row.querySelector('select[name="project_highlight_actions[]"]');
+                if (actionSelect) {
+                    actionSelect.value = 'link';
+                }
+
+                var linkTypeSelect = row.querySelector('select[name="project_highlight_link_types[]"]');
+                if (linkTypeSelect) {
+                    linkTypeSelect.value = '';
+                }
+
+                var linkValueSelect = row.querySelector('select[name="project_highlight_link_values[]"]');
+                if (linkValueSelect) {
+                    linkValueSelect.value = '';
+                    Array.prototype.forEach.call(linkValueSelect.options, function(option) {
+                        option.hidden = false;
+                        option.disabled = false;
+                    });
+                }
+
+                var previewImg = row.querySelector('img[id^="home-highlight-preview-"]');
+                if (previewImg) {
+                    previewImg.id = previewId;
+                    previewImg.style.display = 'none';
+                    previewImg.removeAttribute('src');
+                    previewImg.alt = 'Preview highlight';
+                }
+
+                var previewMeta = row.querySelector('[id^="home-highlight-meta-"]');
+                if (previewMeta) {
+                    previewMeta.id = metaId;
+                    previewMeta.textContent = 'Chưa có ảnh.';
+                }
+
+                return row;
+            }
+
+            var highlightRowsWrapper = document.getElementById('home-highlight-rows');
+            var addHighlightRowButton = document.querySelector('[data-add-highlight-row]');
+            var highlightRowIndex = highlightRowsWrapper ? highlightRowsWrapper.querySelectorAll('.js-home-highlight-row').length : 0;
+
+            if (highlightRowsWrapper) {
+                highlightRowsWrapper.querySelectorAll('.js-home-highlight-row').forEach(function(row) {
+                    bindHighlightRow(row, highlightRowsWrapper);
+                });
+                refreshHighlightRowLabels(highlightRowsWrapper);
+            }
+
+            if (highlightRowsWrapper && addHighlightRowButton) {
+                addHighlightRowButton.addEventListener('click', function() {
+                    var row = createHighlightRow(highlightRowIndex, highlightRowsWrapper);
+                    if (!row) {
+                        return;
+                    }
+
+                    highlightRowIndex += 1;
+                    highlightRowsWrapper.appendChild(row);
+                    bindHighlightRow(row, highlightRowsWrapper);
+                    refreshHighlightRowLabels(highlightRowsWrapper);
                 });
             }
         });

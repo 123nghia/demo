@@ -158,10 +158,8 @@
                 <div class="admin-sidebar__group pt-0">
                     <p class="admin-sidebar__label">Điều hướng website</p>
                     <nav class="admin-sidebar__nav">
-                        <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.menu-items.*') && !request()->fullUrlIs('*menu_zone=about-us*') ? 'active' : '' }}"
+                        <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.menu-items.*') ? 'active' : '' }}"
                             href="{{ route('admin.menu-items.index') }}">Menu chính</a>
-                        <a class="admin-sidebar__nav-link {{ request()->fullUrlIs('*menu_zone=about-us*') ? 'active' : '' }}"
-                            href="{{ route('admin.menu-items.index', ['menu_zone' => 'about-us']) }}">Menu About Us</a>
                         <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
                             href="{{ route('admin.settings.edit') }}">SEO & Footer</a>
                         <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'active' : '' }}"

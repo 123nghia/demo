@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="no-js">
 
 @php
     $siteSettings = $siteSettings ?? [];
@@ -102,6 +102,17 @@
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <script>
+        (function() {
+            var root = document.documentElement;
+            if (!root) {
+                return;
+            }
+
+            root.classList.remove('no-js');
+            root.classList.add('js');
+        })();
+    </script>
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
     @if (!empty($metaKeywords))
@@ -192,6 +203,17 @@
 
     @include('site.partials.floating-contact')
 
+    <script>
+        (function() {
+            if (!document.body || !document.body.classList.contains('project-detail-page')) {
+                return;
+            }
+
+            window.setTimeout(function() {
+                document.body.classList.add('detail-layout-ready');
+            }, 2500);
+        })();
+    </script>
     <script src="{{ asset('theme/script.js') }}{{ $themeScriptVersion ? '?v=' . $themeScriptVersion : '' }}"></script>
     @stack('scripts')
 </body>

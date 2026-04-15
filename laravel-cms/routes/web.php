@@ -39,6 +39,8 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('home-content', [HomeContentController::class, 'index'])->name('home-content.index');
     Route::put('home-content', [HomeContentController::class, 'update'])->name('home-content.update');
+    Route::post('home-content/auto-source/{detailPage}/visibility', [HomeContentController::class, 'updateAutoSourceVisibility'])
+        ->name('home-content.auto-source.visibility');
     Route::resource('pages', PageController::class)->except(['show']);
     Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::put('settings', [SettingController::class, 'update'])->name('settings.update');

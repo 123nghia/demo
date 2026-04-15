@@ -45,6 +45,10 @@ return [
                     return database_path('database.sqlite');
                 }
 
+                if ($database === ':memory:') {
+                    return ':memory:';
+                }
+
                 if (preg_match('/^[A-Za-z]:[\\\\\/]/', $database) || Str::startsWith($database, ['/', '\\'])) {
                     return $database;
                 }

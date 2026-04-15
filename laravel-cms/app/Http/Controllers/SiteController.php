@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
 use App\Models\ProjectVideo;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -284,17 +285,49 @@ class SiteController extends Controller
 
     private function resolveHomeProjectHighlights()
     {
+        $manualItems = [];
+        $autoExcludedDetailPageIds = [];
+
+        try {
+            $homeContent = SiteSetting::homeContent();
+            $manualItems = data_get($homeContent, 'project_highlights.items', []);
+            $autoExcludedDetailPageIds = $this->sanitizeDetailPageIds(
+                data_get($homeContent, 'project_highlights.auto_excluded_detail_page_ids', [])
+            );
+        } catch (\Throwable $exception) {
+            // Ignore manual config read errors and continue with auto source.
+        }
+
+        $manualHighlights = $this->resolveManualHomeProjectHighlights($manualItems);
+        $autoHighlights = $this->resolveAutoHomeProjectHighlights($autoExcludedDetailPageIds);
+
+        if ($manualHighlights->isEmpty()) {
+            return $autoHighlights;
+        }
+
+        if ($autoHighlights->isEmpty()) {
+            return $manualHighlights->take(12)->values();
+        }
+
+        return $this->mergeHomeProjectHighlights($manualHighlights, $autoHighlights);
+    }
+
+    private function resolveAutoHomeProjectHighlights(array $autoExcludedDetailPageIds = [])
+    {
         try {
             return ProjectDetailPage::query()
                 ->published()
                 ->whereNotNull('thumbnail_image')
                 ->where('thumbnail_image', '!=', '')
+                ->when(!empty($autoExcludedDetailPageIds), function ($query) use ($autoExcludedDetailPageIds) {
+                    $query->whereNotIn('id', $autoExcludedDetailPageIds);
+                })
                 ->whereHas('project', function ($query) {
                     $query->published();
                 })
                 ->with([
                     'project' => function ($query) {
-                        $query->select(['id', 'name', 'slug']);
+                        $query->select(['id', 'name', 'slug', 'is_published']);
                     },
                 ])
                 ->ordered()
@@ -303,6 +336,280 @@ class SiteController extends Controller
         } catch (\Throwable $exception) {
             return collect();
         }
+    }
+
+    private function mergeHomeProjectHighlights($manualHighlights, $autoHighlights)
+    {
+        return $manualHighlights
+            ->concat($autoHighlights)
+            ->filter(function ($item) {
+                return !empty(data_get($item, 'title')) && !empty(data_get($item, 'thumbnail_image'));
+            })
+            ->unique(function ($item) {
+                return $this->homeHighlightIdentityKey($item);
+            })
+            ->take(12)
+            ->values();
+    }
+
+    private function homeHighlightIdentityKey($item): string
+    {
+        $action = data_get($item, 'thumbnail_click_action') === 'lightbox' ? 'lightbox' : 'link';
+
+        if ($action === 'link') {
+            $url = trim((string) data_get($item, 'url'));
+            $resolvedPath = '';
+
+            if ($url !== '') {
+                $resolvedPath = trim((string) parse_url($url, PHP_URL_PATH), '/');
+            }
+
+            if ($resolvedPath === '') {
+                $resolvedPath = trim((string) data_get($item, 'slug'), '/');
+            }
+
+            if ($resolvedPath !== '') {
+                return 'link:' . Str::lower($resolvedPath);
+            }
+        }
+
+        $image = trim((string) data_get($item, 'thumbnail_image'));
+        $title = trim((string) data_get($item, 'title'));
+
+        return 'asset:' . Str::lower($action . '|' . $image . '|' . $title);
+    }
+
+    private function sanitizeDetailPageIds($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->map(function ($id) {
+                if (is_string($id)) {
+                    $id = trim($id);
+                }
+
+                return is_numeric($id) ? (int) $id : null;
+            })
+            ->filter(function ($id) {
+                return is_int($id) && $id > 0;
+            })
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function resolveManualHomeProjectHighlights($items)
+    {
+        if (!is_array($items) || empty($items)) {
+            return collect();
+        }
+
+        $linkMaps = $this->resolveManualHighlightLinkMaps($items);
+
+        return collect($items)
+            ->map(function ($item) use ($linkMaps) {
+                if (!is_array($item)) {
+                    return null;
+                }
+
+                $title = trim((string) data_get($item, 'title'));
+                $description = trim((string) data_get($item, 'description'));
+                $image = trim((string) data_get($item, 'image'));
+                $action = data_get($item, 'action') === 'lightbox' ? 'lightbox' : 'link';
+
+                $linkType = trim((string) data_get($item, 'link_type'));
+                $linkValue = data_get($item, 'link_value');
+                $linkValue = is_numeric($linkValue) ? (int) $linkValue : null;
+
+                $source = null;
+                if (
+                    $action === 'link'
+                    && in_array($linkType, ['detail', 'project', 'blog', 'video'], true)
+                    && !is_null($linkValue)
+                ) {
+                    $source = data_get($linkMaps, $linkType . '.' . $linkValue);
+                }
+
+                if ($title === '') {
+                    $title = trim((string) data_get($source, 'title'));
+                }
+
+                if ($description === '') {
+                    $description = trim((string) data_get($source, 'description'));
+                }
+
+                if ($image === '') {
+                    $image = trim((string) data_get($source, 'image'));
+                }
+
+                $resolvedUrl = null;
+                if ($action === 'link') {
+                    $resolvedUrl = trim((string) data_get($source, 'url'));
+                    if ($resolvedUrl === '') {
+                        $action = 'lightbox';
+                    }
+                }
+
+                if ($title === '' || $image === '') {
+                    return null;
+                }
+
+                return [
+                    'title' => $title,
+                    'summary' => $description === '' ? null : $description,
+                    'thumbnail_image' => $image,
+                    'thumbnail_click_action' => $action,
+                    'url' => $action === 'link' ? $resolvedUrl : null,
+                ];
+            })
+            ->filter()
+            ->values();
+    }
+
+    private function resolveManualHighlightLinkMaps(array $items): array
+    {
+        $detailIds = $this->collectLinkIdsByType($items, 'detail');
+        $projectIds = $this->collectLinkIdsByType($items, 'project');
+        $blogIds = $this->collectLinkIdsByType($items, 'blog');
+        $videoIds = $this->collectLinkIdsByType($items, 'video');
+
+        $detailMap = [];
+        if (!empty($detailIds)) {
+            $detailMap = ProjectDetailPage::query()
+                ->published()
+                ->whereIn('id', $detailIds)
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'cover_image']);
+                    },
+                ])
+                ->get(['id', 'project_id', 'title', 'slug', 'summary', 'thumbnail_image'])
+                ->mapWithKeys(function ($detailPage) {
+                    $slug = trim((string) $detailPage->slug, '/');
+
+                    return [
+                        $detailPage->id => [
+                            'url' => $slug === '' ? null : url('/' . $slug),
+                            'title' => $detailPage->title,
+                            'description' => $detailPage->summary ?: data_get($detailPage, 'project.name'),
+                            'image' => $detailPage->thumbnail_image ?: data_get($detailPage, 'project.cover_image'),
+                        ],
+                    ];
+                })
+                ->all();
+        }
+
+        $projectMap = [];
+        if (!empty($projectIds)) {
+            $projectMap = Project::query()
+                ->published()
+                ->whereIn('id', $projectIds)
+                ->get(['id', 'name', 'slug', 'short_description', 'cover_image'])
+                ->mapWithKeys(function ($project) {
+                    $slug = trim((string) $project->slug, '/');
+
+                    return [
+                        $project->id => [
+                            'url' => $slug === '' ? null : url('/' . $slug),
+                            'title' => $project->name,
+                            'description' => $project->short_description,
+                            'image' => $project->cover_image,
+                        ],
+                    ];
+                })
+                ->all();
+        }
+
+        $blogMap = [];
+        if (!empty($blogIds)) {
+            $blogMap = Blog::query()
+                ->published()
+                ->whereIn('id', $blogIds)
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'cover_image']);
+                    },
+                ])
+                ->get(['id', 'project_id', 'title', 'slug', 'excerpt', 'thumbnail_image'])
+                ->mapWithKeys(function ($blog) {
+                    $slug = trim((string) $blog->slug, '/');
+
+                    return [
+                        $blog->id => [
+                            'url' => $slug === '' ? null : route('site.blog.show', ['slug' => $slug]),
+                            'title' => $blog->title,
+                            'description' => $blog->excerpt ?: data_get($blog, 'project.name'),
+                            'image' => $blog->thumbnail_image ?: data_get($blog, 'project.cover_image'),
+                        ],
+                    ];
+                })
+                ->all();
+        }
+
+        $videoMap = [];
+        if (!empty($videoIds)) {
+            $videoMap = ProjectVideo::query()
+                ->published()
+                ->whereIn('id', $videoIds)
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'cover_image']);
+                    },
+                ])
+                ->get(['id', 'project_id', 'title', 'slug', 'description', 'thumbnail_image'])
+                ->mapWithKeys(function ($video) {
+                    $slug = trim((string) $video->slug, '/');
+
+                    return [
+                        $video->id => [
+                            'url' => $slug === '' ? null : route('site.video.show', ['slug' => $slug]),
+                            'title' => $video->title,
+                            'description' => $video->description ?: data_get($video, 'project.name'),
+                            'image' => $video->thumbnail_image ?: data_get($video, 'project.cover_image'),
+                        ],
+                    ];
+                })
+                ->all();
+        }
+
+        return [
+            'detail' => $detailMap,
+            'project' => $projectMap,
+            'blog' => $blogMap,
+            'video' => $videoMap,
+        ];
+    }
+
+    private function collectLinkIdsByType(array $items, string $type): array
+    {
+        return collect($items)
+            ->filter(function ($item) use ($type) {
+                if (!is_array($item)) {
+                    return false;
+                }
+
+                return data_get($item, 'action') === 'link'
+                    && data_get($item, 'link_type') === $type
+                    && is_numeric(data_get($item, 'link_value'));
+            })
+            ->map(function ($item) {
+                return (int) data_get($item, 'link_value');
+            })
+            ->filter(function ($id) {
+                return $id > 0;
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function resolvePage(string $slug): ?Page

@@ -32,7 +32,6 @@ class AppServiceProvider extends ServiceProvider
         View::composer('site.layouts.app', function ($view) {
             $siteSettings = SiteSetting::defaults();
             $siteMenuItems = collect();
-            $siteAboutMenuTree = collect();
             $aboutContent = SiteSetting::aboutContentDefaults();
             $homeContent = SiteSetting::homeContentDefaults();
 
@@ -65,26 +64,9 @@ class AppServiceProvider extends ServiceProvider
                 // Keep an empty menu and let Blade fallback render defaults.
             }
 
-            try {
-                $siteAboutMenuTree = MenuItem::query()
-                    ->active()
-                    ->inZone(MenuItem::ZONE_ABOUT_US)
-                    ->topLevel()
-                    ->with([
-                        'children' => function ($query) {
-                            $query->active()->ordered();
-                        },
-                    ])
-                    ->ordered()
-                    ->get();
-            } catch (\Throwable $exception) {
-                // Keep empty tree and let About Us page fallback to static menu.
-            }
-
             $view
                 ->with('siteSettings', $siteSettings)
                 ->with('siteMenuItems', $siteMenuItems)
-                ->with('siteAboutMenuTree', $siteAboutMenuTree)
                 ->with('aboutContent', $aboutContent)
                 ->with('homeContent', $homeContent);
         });

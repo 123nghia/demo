@@ -1699,6 +1699,16 @@ body.project-detail-page {
   background: #000;
 }
 
+body.project-detail-page .detail-main {
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+html.js body.project-detail-page:not(.detail-layout-ready) .detail-main {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
 body.project-detail-page .header-nav {
   display: none;
 }

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Blog;
+use App\Models\Project;
 use App\Models\ProjectDetailPage;
+use App\Models\ProjectVideo;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -23,6 +26,75 @@ class HomeContentController extends Controller
             ->paginate(24);
 
         $homeContent = SiteSetting::homeContent();
+        $projectHighlightMode = data_get($homeContent, 'project_highlights.mode', 'auto');
+        if (!in_array($projectHighlightMode, ['auto', 'manual'], true)) {
+            $projectHighlightMode = 'auto';
+        }
+
+        $autoExcludedDetailPageIds = $this->sanitizeAutoExcludedDetailPageIds(
+            data_get($homeContent, 'project_highlights.auto_excluded_detail_page_ids', [])
+        );
+
+        $manualHighlightRows = data_get($homeContent, 'project_highlights.items', []);
+        if (!is_array($manualHighlightRows)) {
+            $manualHighlightRows = [];
+        }
+
+        $projectLinkSources = [
+            'detail' => collect(),
+            'project' => collect(),
+            'blog' => collect(),
+            'video' => collect(),
+        ];
+
+        try {
+            $projectLinkSources['detail'] = ProjectDetailPage::query()
+                ->published()
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name']);
+                    },
+                ])
+                ->ordered()
+                ->limit(500)
+                ->get(['id', 'project_id', 'title', 'slug', 'thumbnail_image']);
+
+            $projectLinkSources['project'] = Project::query()
+                ->published()
+                ->ordered()
+                ->limit(500)
+                ->get(['id', 'name', 'slug', 'cover_image']);
+
+            $projectLinkSources['blog'] = Blog::query()
+                ->published()
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name']);
+                    },
+                ])
+                ->ordered()
+                ->limit(500)
+                ->get(['id', 'project_id', 'title', 'slug', 'thumbnail_image', 'excerpt']);
+
+            $projectLinkSources['video'] = ProjectVideo::query()
+                ->published()
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name']);
+                    },
+                ])
+                ->ordered()
+                ->limit(500)
+                ->get(['id', 'project_id', 'title', 'slug', 'thumbnail_image', 'description']);
+        } catch (\Throwable $exception) {
+            // Keep empty options when source data is temporarily unavailable.
+        }
 
         $stats = [
             'total' => ProjectDetailPage::query()->count(),
@@ -41,7 +113,15 @@ class HomeContentController extends Controller
                 ->count(),
         ];
 
-        return view('admin.home-content.index', compact('homeItems', 'stats', 'homeContent'));
+        return view('admin.home-content.index', compact(
+            'homeItems',
+            'stats',
+            'homeContent',
+            'projectLinkSources',
+            'projectHighlightMode',
+            'manualHighlightRows',
+            'autoExcludedDetailPageIds'
+        ));
     }
 
     public function update(Request $request)
@@ -90,6 +170,22 @@ class HomeContentController extends Controller
             'footer_partner_button_url' => 'nullable|string|max:255',
             'footer_partner_background_image' => 'nullable|string|max:255',
             'footer_partner_background_image_file' => 'nullable|image|max:5120',
+
+            'project_highlights_mode' => 'nullable|in:auto,manual',
+            'project_highlight_titles' => 'nullable|array|max:24',
+            'project_highlight_titles.*' => 'nullable|string|max:255',
+            'project_highlight_descriptions' => 'nullable|array|max:24',
+            'project_highlight_descriptions.*' => 'nullable|string|max:500',
+            'project_highlight_images' => 'nullable|array|max:24',
+            'project_highlight_images.*' => 'nullable|string|max:255',
+            'project_highlight_image_files' => 'nullable|array|max:24',
+            'project_highlight_image_files.*' => 'nullable|image|max:5120',
+            'project_highlight_actions' => 'nullable|array|max:24',
+            'project_highlight_actions.*' => 'nullable|in:link,lightbox',
+            'project_highlight_link_types' => 'nullable|array|max:24',
+            'project_highlight_link_types.*' => 'nullable|in:detail,project,blog,video',
+            'project_highlight_link_values' => 'nullable|array|max:24',
+            'project_highlight_link_values.*' => 'nullable|integer|min:1',
         ]);
 
         $aboutStats = collect([
@@ -115,6 +211,17 @@ class HomeContentController extends Controller
             })
             ->values()
             ->all();
+
+        $resolvedProjectHighlightItems = $this->resolveProjectHighlightItems($request, $validated);
+        $resolvedProjectHighlightMode = ($validated['project_highlights_mode'] ?? 'auto') === 'manual' ? 'manual' : 'auto';
+        if ($resolvedProjectHighlightMode === 'auto' && !empty($resolvedProjectHighlightItems)) {
+            $resolvedProjectHighlightMode = 'manual';
+        }
+
+        $existingHomeContent = SiteSetting::homeContent();
+        $existingAutoExcludedDetailPageIds = $this->sanitizeAutoExcludedDetailPageIds(
+            data_get($existingHomeContent, 'project_highlights.auto_excluded_detail_page_ids', [])
+        );
 
         $homeContent = [
             'hero' => [
@@ -152,6 +259,11 @@ class HomeContentController extends Controller
                     'button_url' => $this->cleanString($validated['footer_partner_button_url'] ?? null),
                     'background_image' => $this->cleanString($validated['footer_partner_background_image'] ?? null),
                 ],
+            ],
+            'project_highlights' => [
+                'mode' => $resolvedProjectHighlightMode,
+                'items' => $resolvedProjectHighlightItems,
+                'auto_excluded_detail_page_ids' => $existingAutoExcludedDetailPageIds,
             ],
         ];
 
@@ -200,6 +312,39 @@ class HomeContentController extends Controller
         return redirect()
             ->route('admin.home-content.index')
             ->with('success', 'Đã cập nhật nội dung Trang chủ thành công.');
+    }
+
+    public function updateAutoSourceVisibility(Request $request, ProjectDetailPage $detailPage)
+    {
+        $validated = $request->validate([
+            'action' => 'required|in:exclude,include',
+        ]);
+
+        $homeContent = SiteSetting::homeContent();
+        $excludedDetailPageIds = $this->sanitizeAutoExcludedDetailPageIds(
+            data_get($homeContent, 'project_highlights.auto_excluded_detail_page_ids', [])
+        );
+
+        if (($validated['action'] ?? 'exclude') === 'include') {
+            $excludedDetailPageIds = array_values(array_filter($excludedDetailPageIds, function ($id) use ($detailPage) {
+                return $id !== (int) $detailPage->id;
+            }));
+        } else {
+            if (!in_array((int) $detailPage->id, $excludedDetailPageIds, true)) {
+                $excludedDetailPageIds[] = (int) $detailPage->id;
+            }
+        }
+
+        data_set($homeContent, 'project_highlights.auto_excluded_detail_page_ids', $excludedDetailPageIds);
+        SiteSetting::setHomeContent($homeContent);
+
+        $successMessage = ($validated['action'] ?? 'exclude') === 'include'
+            ? 'Đã khôi phục mục vào hiển thị tự động Trang chủ.'
+            : 'Đã xóa mục khỏi hiển thị tự động Trang chủ.';
+
+        return redirect()
+            ->route('admin.home-content.index')
+            ->with('success', $successMessage);
     }
 
     private function cleanString($value): ?string
@@ -255,6 +400,139 @@ class HomeContentController extends Controller
         }
 
         return array_values(array_unique($resolved));
+    }
+
+    private function resolveProjectHighlightItems(Request $request, array $validated): array
+    {
+        $titles = $validated['project_highlight_titles'] ?? [];
+        if (!is_array($titles)) {
+            $titles = [];
+        }
+
+        $descriptions = $validated['project_highlight_descriptions'] ?? [];
+        if (!is_array($descriptions)) {
+            $descriptions = [];
+        }
+
+        $imagePaths = $validated['project_highlight_images'] ?? [];
+        if (!is_array($imagePaths)) {
+            $imagePaths = [];
+        }
+
+        $actions = $validated['project_highlight_actions'] ?? [];
+        if (!is_array($actions)) {
+            $actions = [];
+        }
+
+        $linkTypes = $validated['project_highlight_link_types'] ?? [];
+        if (!is_array($linkTypes)) {
+            $linkTypes = [];
+        }
+
+        $linkValues = $validated['project_highlight_link_values'] ?? [];
+        if (!is_array($linkValues)) {
+            $linkValues = [];
+        }
+
+        $imageFiles = $request->file('project_highlight_image_files', []);
+        if (!is_array($imageFiles)) {
+            $imageFiles = [];
+        }
+
+        $maxRows = max(
+            count($titles),
+            count($descriptions),
+            count($imagePaths),
+            count($actions),
+            count($linkTypes),
+            count($linkValues),
+            count($imageFiles)
+        );
+
+        $resolved = [];
+
+        for ($index = 0; $index < $maxRows; $index++) {
+            $title = $this->cleanString($titles[$index] ?? null);
+            $description = $this->cleanString($descriptions[$index] ?? null);
+            $typedPath = $this->cleanString($imagePaths[$index] ?? null);
+
+            $uploadedPath = null;
+            $uploadedFile = $imageFiles[$index] ?? null;
+            if ($uploadedFile && $uploadedFile->isValid()) {
+                $uploadedPath = $this->storeUploadedFile($uploadedFile, 'home-highlight');
+            }
+
+            $finalImage = $uploadedPath ?: $typedPath;
+            $action = ($actions[$index] ?? null) === 'lightbox' ? 'lightbox' : 'link';
+
+            $linkType = $this->cleanString($linkTypes[$index] ?? null);
+            if (!in_array($linkType, ['detail', 'project', 'blog', 'video'], true)) {
+                $linkType = null;
+            }
+
+            $linkValue = $linkValues[$index] ?? null;
+            if (is_string($linkValue)) {
+                $linkValue = trim($linkValue);
+            }
+
+            if (is_numeric($linkValue)) {
+                $linkValue = (int) $linkValue;
+            } else {
+                $linkValue = null;
+            }
+
+            $hasAnyValue = !is_null($title)
+                || !is_null($description)
+                || !is_null($finalImage)
+                || !is_null($linkType)
+                || !is_null($linkValue);
+
+            if (!$hasAnyValue) {
+                continue;
+            }
+
+            if ($action === 'lightbox') {
+                $linkType = null;
+                $linkValue = null;
+            }
+
+            $resolved[] = [
+                'title' => $title,
+                'description' => $description,
+                'image' => $finalImage,
+                'action' => $action,
+                'link_type' => $linkType,
+                'link_value' => $linkValue,
+            ];
+
+            if (count($resolved) >= 24) {
+                break;
+            }
+        }
+
+        return $resolved;
+    }
+
+    private function sanitizeAutoExcludedDetailPageIds($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->map(function ($id) {
+                if (is_string($id)) {
+                    $id = trim($id);
+                }
+
+                return is_numeric($id) ? (int) $id : null;
+            })
+            ->filter(function ($id) {
+                return is_int($id) && $id > 0;
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function replaceWithUploadedImage(
