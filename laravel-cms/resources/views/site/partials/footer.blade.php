@@ -1,5 +1,13 @@
 @php
-    $siteSettings = $siteSettings ?? [];
+    $siteSettings = is_array($siteSettings ?? null) ? $siteSettings : [];
+
+    if (empty($siteSettings)) {
+        try {
+            $siteSettings = \App\Models\SiteSetting::allAsArray();
+        } catch (\Throwable $exception) {
+            $siteSettings = \App\Models\SiteSetting::defaults();
+        }
+    }
 
     $brandName = trim((string) ($siteSettings['site_name'] ?? 'HOVI VIỆT NAM'));
     $footerLogo = trim((string) ($siteSettings['footer_logo'] ?? '/theme/logofooter.png'));
@@ -94,7 +102,5 @@
         @endif
     </div>
 
-    @if (!empty($copyright))
-        <p class="site-footer__tax mt-3">{{ $copyright }}</p>
-    @endif
+ 
 </footer>

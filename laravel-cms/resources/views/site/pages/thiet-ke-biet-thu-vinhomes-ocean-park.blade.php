@@ -105,7 +105,7 @@
                         trong thời gian sớm nhất.
                     </p>
                 </div>
-                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit') }}" method="post">
+                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit', [], false) }}" method="post">
                     @csrf
                     <input type="hidden" name="source_page" value="thiet-ke-biet-thu-vinhomes-ocean-park">
                     <input type="text" name="name" autocomplete="name" placeholder="Tên của Anh/Chị*" required>

@@ -11,7 +11,8 @@
         <a class="btn btn-outline-dark" href="{{ route('admin.projects.edit', $project) }}">← Quay lại dự án</a>
     </div>
 
-    <form action="{{ route('admin.projects.videos.store', $project) }}" method="post" class="card border-0 shadow-sm">
+    <form action="{{ route('admin.projects.videos.store', $project) }}" method="post" enctype="multipart/form-data"
+        class="card border-0 shadow-sm">
         @csrf
         <div class="card-body">
             @include('admin.projects.videos._form')

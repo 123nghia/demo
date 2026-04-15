@@ -1,6 +1,8 @@
 @php
     /** @var \App\Models\ProjectVideo|null $video */
     $video = $video ?? null;
+    $projects = $projects ?? collect();
+    $defaultProjectId = $defaultProjectId ?? '';
 @endphp
 
 <div class="row g-3">
@@ -15,13 +17,28 @@
         <input class="form-control" id="slug" name="slug" type="text"
             value="{{ old('slug', $video->slug ?? '') }}"
             placeholder="tu-dong-theo-tieu-de">
-        <div class="form-text">Tự sinh theo tiêu đề nếu để trống.</div>
+        <div class="form-text">Tự sinh từ tiêu đề (duy nhất cho route động /{slug}).</div>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="project_id">Thuộc dự án</label>
+        @php
+            $resolvedProjectId = (string) old('project_id', $video->project_id ?? $defaultProjectId);
+        @endphp
+        <select class="form-select" id="project_id" name="project_id" required>
+            <option value="">-- Chọn dự án --</option>
+            @foreach ($projects as $project)
+                <option value="{{ $project->id }}" @selected($resolvedProjectId === (string) $project->id)>
+                    {{ $project->name }} (/{{ $project->slug }})
+                </option>
+            @endforeach
+        </select>
     </div>
 
     <div class="col-md-3">
         <label class="form-label" for="display_zone">Phân vùng hiển thị</label>
-        @php $displayZone = old('display_zone', $video->display_zone ?? 'project'); @endphp
-        <select class="form-select" id="display_zone" name="display_zone">
+        @php $displayZone = old('display_zone', $video->display_zone ?? 'all'); @endphp
+        <select class="form-select" id="display_zone" name="display_zone" required>
             <option value="all" @selected($displayZone === 'all')>Toàn site</option>
             <option value="video" @selected($displayZone === 'video')>Trang Video</option>
             <option value="project" @selected($displayZone === 'project')>Khu vực dự án</option>
@@ -35,10 +52,11 @@
     </div>
 
     <div class="col-md-8">
-        <label class="form-label" for="video_url">Link video</label>
+        <label class="form-label" for="video_url">Link video gốc</label>
         <input class="form-control" id="video_url" name="video_url" type="text"
-            value="{{ old('video_url', $video->video_url ?? '') }}">
-        <div class="form-text">Ví dụ: YouTube, Vimeo, MP4 trực tiếp hoặc URL ngoài.</div>
+            value="{{ old('video_url', $video->video_url ?? '') }}"
+            placeholder="https://youtube.com/watch?... hoặc https://...">
+        <div class="form-text">Hỗ trợ YouTube/Vimeo và link ngoài. Nếu không nhận diện embed, hệ thống sẽ hiển thị nút mở link gốc.</div>
     </div>
 
     <div class="col-md-4 d-flex align-items-end">
@@ -53,7 +71,8 @@
     <div class="col-md-8">
         <label class="form-label" for="thumbnail_image">Ảnh thumbnail (URL hoặc đường dẫn)</label>
         <input class="form-control" id="thumbnail_image" name="thumbnail_image" type="text"
-            value="{{ old('thumbnail_image', $video->thumbnail_image ?? '') }}">
+            value="{{ old('thumbnail_image', $video->thumbnail_image ?? '') }}"
+            placeholder="/uploads/videos/... hoặc https://...">
     </div>
 
     <div class="col-md-4">
@@ -73,12 +92,12 @@
 
     <div class="col-12">
         <label class="form-label" for="description">Mô tả ngắn</label>
-        <textarea class="form-control" id="description" name="description" rows="4">{{ old('description', $video->description ?? '') }}</textarea>
+        <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $video->description ?? '') }}</textarea>
     </div>
 
     <div class="col-12">
         <label class="form-label" for="content">Nội dung chi tiết video</label>
-        <textarea class="form-control js-rich-editor" id="content" name="content" rows="8">{{ old('content', $video->content ?? '') }}</textarea>
+        <textarea class="form-control js-rich-editor" id="content" name="content" rows="10">{{ old('content', $video->content ?? '') }}</textarea>
     </div>
 
     <div class="col-md-6">

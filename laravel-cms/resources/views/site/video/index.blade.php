@@ -1,21 +1,21 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'Blog HOVI Việt Nam | Chia sẻ thiết kế cảnh quan')
+@section('title', $page->seo_title ?? 'Video HOVI Việt Nam | Công trình thực tế')
 @section('meta_description',
     $page->seo_description ??
-    'Cập nhật bài viết mới từ HOVI Việt Nam: kiến thức thiết kế cảnh quan, thi công sân vườn và kinh nghiệm triển khai thực tế.')
+    'Khám phá video công trình thực tế, chia sẻ hậu trường thiết kế thi công và kinh nghiệm triển khai từ HOVI Việt Nam.')
 @section('body_class', 'contact-page project-category-page')
-@section('page_key', 'blog')
+@section('page_key', 'video')
 
 @push('head')
     <style>
-        .blog-card__meta {
+        .video-card__meta {
             margin: -8px 14px 10px;
             color: rgba(255, 255, 255, 0.66);
             font-size: .82rem;
         }
 
-        .blog-card__excerpt {
+        .video-card__excerpt {
             margin: 0;
             padding: 0 14px 16px;
             color: rgba(255, 255, 255, 0.8);
@@ -23,12 +23,12 @@
             line-height: 1.58;
         }
 
-        .blog-empty {
+        .video-empty {
             color: rgba(255, 255, 255, .78);
             font-size: .96rem;
         }
 
-        .blog-card__project {
+        .video-card__project {
             margin: -6px 14px 12px;
             display: inline-flex;
             align-items: center;
@@ -47,7 +47,7 @@
 
 @section('content')
     @php
-        $resolveImage = function ($raw, $fallback = '/theme/assets/hovi/gallery/hovi-036.jpg') {
+        $resolveImage = function ($raw, $fallback = '/theme/assets/hovi/gallery/hovi-034.jpg') {
             $value = trim((string) $raw);
             if ($value === '') {
                 return $fallback;
@@ -63,33 +63,33 @@
 
     <main class="category-main">
         <section class="category-head category-head--lined" id="tong-quan">
-            <h1 class="category-title">BLOG HOVI VIỆT NAM</h1>
+            <h1 class="category-title">VIDEO HOVI VIỆT NAM</h1>
         </section>
 
-        <section class="category-section" id="blog-list">
+        <section class="category-section" id="video-list">
             <div class="category-section-heading category-section-heading--lined">
-                <h2>Bài viết mới nhất</h2>
+                <h2>Video mới nhất</h2>
             </div>
 
             <div class="category-grid category-grid--media">
-                @forelse ($blogs as $blog)
-                    <article class="category-card category-card--blog">
-                        <a href="{{ url('/' . $blog->slug) }}">
-                            <img src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}">
-                            <h3>{{ $blog->title }}</h3>
+                @forelse ($videos as $video)
+                    <article class="category-card category-card--video">
+                        <a href="{{ !empty($video->slug) ? url('/' . $video->slug) : route('site.video.index') }}">
+                            <img src="{{ $resolveImage($video->thumbnail_image) }}" alt="{{ $video->title }}">
+                            <h3>{{ $video->title }}</h3>
                         </a>
-                        <p class="blog-card__meta">
-                            {{ optional($blog->published_at)->format('d/m/Y') ?: optional($blog->created_at)->format('d/m/Y') }}
+                        <p class="video-card__meta">
+                            {{ optional($video->published_at)->format('d/m/Y') ?: optional($video->created_at)->format('d/m/Y') }}
                         </p>
-                        @if ($blog->project)
-                            <p class="blog-card__project">Dự án: {{ $blog->project->name }}</p>
+                        @if ($video->project)
+                            <p class="video-card__project">Dự án: {{ $video->project->name }}</p>
                         @endif
-                        @if (!empty($blog->excerpt))
-                            <p class="blog-card__excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt, 130) }}</p>
+                        @if (!empty($video->description))
+                            <p class="video-card__excerpt">{{ \Illuminate\Support\Str::limit($video->description, 130) }}</p>
                         @endif
                     </article>
                 @empty
-                    <p class="blog-empty">Hiện chưa có bài blog nào được xuất bản.</p>
+                    <p class="video-empty">Hiện chưa có video nào được xuất bản.</p>
                 @endforelse
             </div>
         </section>

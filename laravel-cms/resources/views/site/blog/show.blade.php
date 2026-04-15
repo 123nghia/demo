@@ -206,9 +206,9 @@
                         Gửi nhu cầu để đội ngũ tư vấn liên hệ lại, hoặc gọi trực tiếp để trao đổi nhanh về công trình của bạn.
                     </p>
                 </div>
-                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit') }}" method="post">
+                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit', [], false) }}" method="post">
                     @csrf
-                    <input type="hidden" name="source_page" value="blog/{{ $blog->slug }}">
+                    <input type="hidden" name="source_page" value="{{ $blog->slug }}">
                     <input type="text" name="name" autocomplete="name" placeholder="Họ tên*" required>
                     <input type="tel" name="phone" autocomplete="tel" placeholder="Số điện thoại*" required>
                     <input type="email" name="email" autocomplete="email" placeholder="Email*">
@@ -233,7 +233,7 @@
                 <div class="detail-related__grid">
                     @foreach ($relatedBlogs as $item)
                         <article class="detail-related__card">
-                            <a href="{{ route('site.blog.show', $item->slug) }}">
+                            <a href="{{ url('/' . $item->slug) }}">
                                 <img src="{{ $resolveImage($item->thumbnail_image) }}" alt="{{ $item->title }}">
                                 <h3>{{ $item->title }}</h3>
                             </a>

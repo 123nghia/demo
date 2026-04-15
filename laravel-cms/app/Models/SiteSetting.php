@@ -249,7 +249,7 @@ class SiteSetting extends Model
                 'consult' => [
                     'title' => 'ĐẶT LỊCH TƯ VẤN',
                     'button_label' => 'Đặt lịch',
-                    'button_url' => 'https://www.hovi.com.vn/dang-ky-dich-vu/',
+                    'button_url' => '/dang-ky-dich-vu',
                     'background_image' => '/theme/assets/hovi/gallery/hovi-001.jpg',
                 ],
                 'partner' => [

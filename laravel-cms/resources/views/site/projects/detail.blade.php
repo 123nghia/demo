@@ -65,7 +65,7 @@
                         Gửi nhu cầu để đội ngũ tư vấn liên hệ lại, hoặc gọi trực tiếp để trao đổi nhanh về công trình của bạn.
                     </p>
                 </div>
-                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit') }}" method="post">
+                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit', [], false) }}" method="post">
                     @csrf
                     <input type="hidden" name="source_page" value="{{ $detailPage->slug }}">
                     <input type="text" name="name" autocomplete="name" placeholder="Họ tên*" required>

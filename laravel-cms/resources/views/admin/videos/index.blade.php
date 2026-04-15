@@ -1,15 +1,15 @@
 @extends('admin.layout')
 
-@section('title', 'Quản lý Blog | HOVI CMS')
+@section('title', 'Quản lý Video | HOVI CMS')
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h1 class="h3 mb-1">Quản lý Blog</h1>
-            <p class="text-muted mb-0">Quản trị danh sách bài blog và trang chi tiết blog.</p>
+            <h1 class="h3 mb-1">Quản lý Video</h1>
+            <p class="text-muted mb-0">Quản trị danh sách video và trang chi tiết video trên frontend.</p>
         </div>
 
-        <a class="btn btn-dark" href="{{ route('admin.blogs.create') }}">+ Tạo bài blog</a>
+        <a class="btn btn-dark" href="{{ route('admin.videos.create') }}">+ Tạo video</a>
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -28,46 +28,48 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($blogs as $blog)
+                    @forelse ($videos as $video)
                         <tr>
-                            <td>{{ $blog->id }}</td>
+                            <td>{{ $video->id }}</td>
                             <td>
-                                <strong>{{ $blog->title }}</strong>
-                                @if (!empty($blog->excerpt))
-                                    <div class="small text-muted">{{ \Illuminate\Support\Str::limit($blog->excerpt, 90) }}</div>
+                                <strong>{{ $video->title }}</strong>
+                                @if (!empty($video->description))
+                                    <div class="small text-muted">{{ \Illuminate\Support\Str::limit($video->description, 90) }}</div>
                                 @endif
                             </td>
                             <td>
-                                @if ($blog->project)
-                                    <span class="badge text-bg-info">{{ $blog->project->name }}</span>
+                                @if ($video->project)
+                                    <span class="badge text-bg-info">{{ $video->project->name }}</span>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
                             <td>
-                                @if (($blog->display_zone ?? 'all') === 'project')
+                                @if (($video->display_zone ?? 'all') === 'project')
                                     <span class="badge text-bg-warning">Khu vực dự án</span>
-                                @elseif (($blog->display_zone ?? 'all') === 'blog')
-                                    <span class="badge text-bg-primary">Trang Blog</span>
+                                @elseif (($video->display_zone ?? 'all') === 'video')
+                                    <span class="badge text-bg-primary">Trang Video</span>
                                 @else
                                     <span class="badge text-bg-dark">Toàn site</span>
                                 @endif
                             </td>
-                            <td><code>/{{ $blog->slug }}</code></td>
-                            <td>{{ optional($blog->published_at)->format('d/m/Y H:i') ?: '—' }}</td>
+                            <td><code>/{{ $video->slug }}</code></td>
+                            <td>{{ optional($video->published_at)->format('d/m/Y H:i') ?: '—' }}</td>
                             <td>
-                                @if ($blog->is_published)
+                                @if ($video->is_published)
                                     <span class="badge text-bg-success">Đang bật</span>
                                 @else
                                     <span class="badge text-bg-secondary">Đang ẩn</span>
                                 @endif
                             </td>
                             <td class="text-end">
-                                <a class="btn btn-sm btn-outline-dark" href="{{ route('admin.blogs.edit', $blog) }}">Sửa</a>
-                                <a class="btn btn-sm btn-outline-primary" href="{{ url('/' . $blog->slug) }}" target="_blank"
-                                    rel="noreferrer noopener">Xem chi tiết</a>
-                                <form action="{{ route('admin.blogs.destroy', $blog) }}" method="post" class="d-inline"
-                                    onsubmit="return confirm('Xóa bài blog này?');">
+                                <a class="btn btn-sm btn-outline-dark" href="{{ route('admin.videos.edit', $video) }}">Sửa</a>
+                                @if (!empty($video->slug))
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ url('/' . $video->slug) }}" target="_blank"
+                                        rel="noreferrer noopener">Xem chi tiết</a>
+                                @endif
+                                <form action="{{ route('admin.videos.destroy', $video) }}" method="post" class="d-inline"
+                                    onsubmit="return confirm('Xóa video này?');">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" type="submit">Xoá</button>
@@ -76,7 +78,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">Chưa có bài blog nào.</td>
+                            <td colspan="8" class="text-center py-4 text-muted">Chưa có video nào.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -85,6 +87,6 @@
     </div>
 
     <div class="mt-3">
-        {{ $blogs->links() }}
+        {{ $videos->links() }}
     </div>
 @endsection

@@ -41,6 +41,7 @@
                 'page_key' => 'oceanpark',
             ],
             ['label' => 'Blog', 'url' => '/blog', 'page_key' => 'blog'],
+            ['label' => 'Video', 'url' => '/video', 'page_key' => 'video'],
             ['label' => 'Giới thiệu', 'url' => '/about-us', 'page_key' => 'about'],
             ['label' => 'Liên hệ', 'url' => '/lien-he', 'page_key' => 'contact'],
         ]);

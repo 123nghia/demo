@@ -146,6 +146,8 @@
                             href="{{ route('admin.projects.index') }}">Quản trị dự án</a>
                         <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.blogs.*') ? 'active' : '' }}"
                             href="{{ route('admin.blogs.index') }}">Quản lý Blog</a>
+                        <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.videos.*') ? 'active' : '' }}"
+                            href="{{ route('admin.videos.index') }}">Quản lý Video</a>
                         <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.home-content.*') ? 'active' : '' }}"
                             href="{{ route('admin.home-content.index') }}">Nội dung Trang chủ</a>
                         <a class="admin-sidebar__nav-link {{ request()->routeIs('admin.about-content.*') ? 'active' : '' }}"
@@ -214,7 +216,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var richEditorSelector = 'textarea.js-rich-editor';
@@ -244,11 +246,40 @@
                 remove_script_host: false,
                 convert_urls: false,
                 content_style: `
+                    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+
+                    @font-face {
+                        font-family: 'SVN Aptima';
+                        src: url('/theme/assets/SVN-Aptima.ttf') format('truetype');
+                        font-weight: 400;
+                        font-style: normal;
+                    }
+
+                    @font-face {
+                        font-family: 'SVN Aptima';
+                        src: url('/theme/assets/SVN-AptimaBold.ttf') format('truetype');
+                        font-weight: 700;
+                        font-style: normal;
+                    }
+
                     body {
                         font-family: 'Open Sans', Arial, sans-serif;
                         font-size: 16px;
                         line-height: 1.75;
                         color: #111827;
+                    }
+
+                    h1, h2, h3, h4, h5, h6 {
+                        font-family: 'SVN Aptima', 'Marcellus', 'Open Sans', serif;
+                        line-height: 1.25;
+                        font-weight: 400;
+                        color: #111827;
+                        margin: 1.15em 0 .65em;
+                    }
+
+                    p, li, blockquote {
+                        font-family: 'Open Sans', Arial, sans-serif;
+                        line-height: 1.8;
                     }
 
                     img {

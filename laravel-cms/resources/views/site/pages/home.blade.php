@@ -176,7 +176,12 @@
 
         $consultTitle = data_get($consultCta, 'title', 'ĐẶT LỊCH TƯ VẤN');
         $consultButtonLabel = data_get($consultCta, 'button_label', 'Đặt lịch');
-        $consultButtonUrl = $toHref(data_get($consultCta, 'button_url'), 'https://www.hovi.com.vn/dang-ky-dich-vu/');
+        $rawConsultButtonUrl = (string) data_get($consultCta, 'button_url', '');
+        $consultButtonUrl = $toHref($rawConsultButtonUrl, url('/dang-ky-dich-vu'));
+        $consultButtonPath = trim((string) parse_url($rawConsultButtonUrl, PHP_URL_PATH), '/');
+        if ($consultButtonPath === 'dang-ky-dich-vu') {
+            $consultButtonUrl = url('/dang-ky-dich-vu');
+        }
         $consultBackgroundImage = $toImageUrl(data_get($consultCta, 'background_image'), '/theme/assets/hovi/gallery/hovi-001.jpg');
 
         $partnerTitle = data_get($partnerCta, 'title', 'TRỞ THÀNH ĐỐI TÁC HOVI VIỆT NAM');
@@ -306,8 +311,7 @@
                     <div class="cta-card__overlay"></div>
                     <div class="cta-card__content">
                         <h3>{{ $consultTitle }}</h3>
-                        <a class="outline-button" href="{{ $consultButtonUrl }}" target="_blank"
-                            rel="noreferrer noopener">{{ $consultButtonLabel }}</a>
+                        <a class="outline-button" href="{{ $consultButtonUrl }}">{{ $consultButtonLabel }}</a>
                     </div>
                 </article>
                 <article class="cta-card cta-card--partner"

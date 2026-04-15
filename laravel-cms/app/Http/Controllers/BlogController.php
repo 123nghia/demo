@@ -11,6 +11,7 @@ class BlogController extends Controller
     {
         $blogs = Blog::query()
             ->published()
+            ->inDisplayZones(['all', 'blog'])
             ->with([
                 'project' => function ($query) {
                     $query->select(['id', 'name', 'slug']);

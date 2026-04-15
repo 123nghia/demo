@@ -84,8 +84,15 @@
                 </div>
                 <div class="category-grid category-grid--media">
                     @foreach ($videos as $video)
+                        @php
+                            $videoHref = !empty($video->slug)
+                                ? url('/' . $video->slug)
+                                : $resolveLink($video->video_url);
+                            $openInNewTab = empty($video->slug);
+                        @endphp
                         <article class="category-card category-card--video">
-                            <a href="{{ $resolveLink($video->video_url) }}" rel="noreferrer noopener" target="_blank">
+                            <a href="{{ $videoHref }}" rel="noreferrer noopener"
+                                @if ($openInNewTab) target="_blank" @endif>
                                 <img src="{{ $resolveImage($video->thumbnail_image, $resolveImage($project->cover_image)) }}"
                                     alt="{{ $video->title }}">
                                 <h3>{{ $video->title }}</h3>
@@ -127,7 +134,7 @@
                         Chia sẻ nhu cầu công trình, đội ngũ HOVI VIỆT NAM sẽ liên hệ và tư vấn giải pháp phù hợp trong thời gian sớm nhất.
                     </p>
                 </div>
-                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit') }}" method="post">
+                <form class="contact-form detail-contact-form" action="{{ route('site.contact.submit', [], false) }}" method="post">
                     @csrf
                     <input type="hidden" name="source_page" value="{{ $project->slug }}">
                     <input type="text" name="name" autocomplete="name" placeholder="Tên của Anh/Chị*" required>

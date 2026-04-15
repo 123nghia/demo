@@ -16,6 +16,7 @@ class Blog extends Model
         'project_id',
         'title',
         'slug',
+        'display_zone',
         'excerpt',
         'content',
         'thumbnail_image',
@@ -48,5 +49,18 @@ class Blog extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function scopeInDisplayZones($query, array $zones)
+    {
+        $zones = array_values(array_filter($zones, function ($zone) {
+            return is_string($zone) && trim($zone) !== '';
+        }));
+
+        if (empty($zones)) {
+            return $query;
+        }
+
+        return $query->whereIn('display_zone', $zones);
     }
 }

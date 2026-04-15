@@ -11,7 +11,7 @@
         <a class="btn btn-outline-dark" href="{{ route('admin.projects.edit', $project) }}">← Quay lại dự án</a>
     </div>
 
-    <form action="{{ route('admin.projects.videos.update', [$project, $video]) }}" method="post"
+    <form action="{{ route('admin.projects.videos.update', [$project, $video]) }}" method="post" enctype="multipart/form-data"
         class="card border-0 shadow-sm">
         @csrf
         @method('PUT')

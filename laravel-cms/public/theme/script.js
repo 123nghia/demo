@@ -430,6 +430,46 @@ function initContactFormEnhancements() {
       }
     };
 
+    form.setAttribute("novalidate", "novalidate");
+
+    const validatableControls = [...form.querySelectorAll("input, textarea, select")].filter(
+      (control) => control.willValidate,
+    );
+    let attemptedSubmit = false;
+
+    const syncControlValidity = (control) => {
+      if (!attemptedSubmit || !control.willValidate) return;
+      control.classList.toggle("is-invalid", !control.checkValidity());
+    };
+
+    const syncAllValidity = () => {
+      validatableControls.forEach((control) => {
+        control.classList.toggle("is-invalid", !control.checkValidity());
+      });
+    };
+
+    const markServerValidationErrors = (errorsPayload) => {
+      if (!errorsPayload || typeof errorsPayload !== "object") return;
+
+      Object.keys(errorsPayload).forEach((fieldName) => {
+        const escapedFieldName = String(fieldName).replace(/"/g, '\\"');
+        const fieldControl = form.querySelector(`[name="${escapedFieldName}"]`);
+        if (fieldControl instanceof HTMLElement) {
+          fieldControl.classList.add("is-invalid");
+        }
+      });
+    };
+
+    validatableControls.forEach((control) => {
+      control.addEventListener("input", () => {
+        syncControlValidity(control);
+      });
+
+      control.addEventListener("blur", () => {
+        syncControlValidity(control);
+      });
+    });
+
     const setSubmittingState = (isSubmitting) => {
       form.classList.toggle("is-submitting", isSubmitting);
 
@@ -463,6 +503,31 @@ function initContactFormEnhancements() {
 
       showFeedback("");
       form.classList.remove("is-success");
+      attemptedSubmit = true;
+
+      const firstInvalidControl = validatableControls.find((control) => !control.checkValidity());
+      if (firstInvalidControl) {
+        syncAllValidity();
+        showFeedback(firstInvalidControl.validationMessage || "Vui lòng điền đầy đủ thông tin bắt buộc.", "error");
+
+        if (typeof firstInvalidControl.focus === "function") {
+          try {
+            firstInvalidControl.focus({
+              preventScroll: true,
+            });
+          } catch (focusError) {
+            firstInvalidControl.focus();
+          }
+        }
+
+        return;
+      }
+
+      syncAllValidity();
+      const formData = new FormData(form);
+      const csrfToken =
+        String(formData.get("_token") || "").trim() ||
+        String(document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "").trim();
       setSubmittingState(true);
 
       try {
@@ -471,8 +536,9 @@ function initContactFormEnhancements() {
           headers: {
             Accept: "application/json",
             "X-Requested-With": "XMLHttpRequest",
+            ...(csrfToken ? { "X-CSRF-TOKEN": csrfToken } : {}),
           },
-          body: new FormData(form),
+          body: formData,
         });
 
         const contentType = (response.headers.get("content-type") || "").toLowerCase();
@@ -486,6 +552,7 @@ function initContactFormEnhancements() {
 
         if (!response.ok) {
           if (response.status === 422) {
+            markServerValidationErrors(payload.errors);
             throw new Error(resolveFirstError(payload.errors));
           }
 
@@ -495,12 +562,17 @@ function initContactFormEnhancements() {
         showFeedback(payload.message || "Gửi thành công. HOVI sẽ liên hệ bạn sớm nhất.", "success");
         form.classList.add("is-success");
         form.reset();
+        attemptedSubmit = false;
+        validatableControls.forEach((control) => {
+          control.classList.remove("is-invalid");
+        });
 
         window.setTimeout(() => {
           form.classList.remove("is-success");
         }, 1400);
       } catch (error) {
         if (error instanceof TypeError) {
+          setSubmittingState(false);
           form.removeEventListener("submit", handleSubmit);
           form.submit();
           return;

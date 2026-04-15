@@ -11,11 +11,11 @@ use App\Models\ProjectVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class BlogController extends Controller
+class VideoController extends Controller
 {
     public function index()
     {
-        $blogs = Blog::query()
+        $videos = ProjectVideo::query()
             ->with([
                 'project' => function ($query) {
                     $query->select(['id', 'name', 'slug']);
@@ -26,64 +26,67 @@ class BlogController extends Controller
             ->orderByDesc('id')
             ->paginate(20);
 
-        return view('admin.blogs.index', compact('blogs'));
+        return view('admin.videos.index', compact('videos'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.blogs.create', [
+        return view('admin.videos.create', [
             'projects' => $this->projectOptions(),
+            'defaultProjectId' => (string) $request->query('project_id', ''),
         ]);
     }
 
     public function store(Request $request)
     {
         $data = $this->validatedData($request);
-        Blog::query()->create($data);
+        ProjectVideo::query()->create($data);
 
         return redirect()
-            ->route('admin.blogs.index')
-            ->with('success', 'Đã tạo bài blog thành công.');
+            ->route('admin.videos.index')
+            ->with('success', 'Đã tạo video thành công.');
     }
 
-    public function edit(Blog $blog)
+    public function edit(ProjectVideo $video)
     {
-        return view('admin.blogs.edit', [
-            'blog' => $blog,
+        return view('admin.videos.edit', [
+            'video' => $video,
             'projects' => $this->projectOptions(),
+            'defaultProjectId' => (string) ($video->project_id ?? ''),
         ]);
     }
 
-    public function update(Request $request, Blog $blog)
+    public function update(Request $request, ProjectVideo $video)
     {
-        $data = $this->validatedData($request, $blog);
-        $blog->update($data);
+        $data = $this->validatedData($request, $video);
+        $video->update($data);
 
         return redirect()
-            ->route('admin.blogs.index')
-            ->with('success', 'Đã cập nhật bài blog.');
+            ->route('admin.videos.index')
+            ->with('success', 'Đã cập nhật video.');
     }
 
-    public function destroy(Blog $blog)
+    public function destroy(ProjectVideo $video)
     {
-        $blog->delete();
+        $video->delete();
 
         return redirect()
-            ->route('admin.blogs.index')
-            ->with('success', 'Đã xoá bài blog.');
+            ->route('admin.videos.index')
+            ->with('success', 'Đã xoá video.');
     }
 
-    private function validatedData(Request $request, ?Blog $blog = null): array
+    private function validatedData(Request $request, ?ProjectVideo $video = null): array
     {
         $validated = $request->validate([
-            'project_id' => 'nullable|integer|exists:projects,id',
+            'project_id' => 'required|integer|exists:projects,id',
             'title' => 'required|string|max:190',
             'slug' => 'nullable|string|max:190',
-            'display_zone' => 'required|string|in:all,blog,project',
-            'excerpt' => 'nullable|string|max:2500',
-            'content' => 'nullable|string|max:50000',
+            'display_zone' => 'required|string|in:all,video,project',
+            'video_url' => 'nullable|string|max:500',
             'thumbnail_image' => 'nullable|string|max:255',
             'thumbnail_image_file' => 'nullable|image|max:4096',
+            'description' => 'nullable|string|max:2500',
+            'content' => 'nullable|string|max:50000',
             'seo_title' => 'nullable|string|max:190',
             'seo_description' => 'nullable|string|max:1000',
             'published_at' => 'nullable|date',
@@ -95,7 +98,7 @@ class BlogController extends Controller
 
         $validated['slug'] = $this->generateUniqueSlug(
             (string) ($validated['title'] ?? ''),
-            $blog,
+            $video,
             $slugSource
         );
 
@@ -111,7 +114,7 @@ class BlogController extends Controller
         if (array_key_exists('sort_order', $validated) && !is_null($validated['sort_order'])) {
             $validated['sort_order'] = (int) $validated['sort_order'];
         } else {
-            $validated['sort_order'] = (int) ($blog->sort_order ?? 0);
+            $validated['sort_order'] = (int) ($video->sort_order ?? 0);
         }
 
         $validated['is_published'] = $request->boolean('is_published');
@@ -137,29 +140,29 @@ class BlogController extends Controller
             return;
         }
 
-        $uploadDirectory = public_path('uploads/blogs');
+        $uploadDirectory = public_path('uploads/videos');
 
         if (!is_dir($uploadDirectory)) {
             mkdir($uploadDirectory, 0755, true);
         }
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
-        $filename = 'blog-thumb-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $filename = 'video-thumb-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
 
         $file->move($uploadDirectory, $filename);
 
-        $payload[$field] = '/uploads/blogs/' . $filename;
+        $payload[$field] = '/uploads/videos/' . $filename;
     }
 
-    private function generateUniqueSlug(string $title, ?Blog $blog = null, ?string $preferred = null): string
+    private function generateUniqueSlug(string $title, ?ProjectVideo $video = null, ?string $preferred = null): string
     {
         $base = Str::slug((string) ($preferred ?: $title));
-        $base = $base !== '' ? $base : 'blog';
+        $base = $base !== '' ? $base : 'video';
 
         $slug = $base;
         $counter = 2;
 
-        while ($this->slugExistsInRouteSpace($slug, $blog)) {
+        while ($this->slugExistsInRouteSpace($slug, $video)) {
             $slug = $base . '-' . $counter;
             $counter++;
 
@@ -172,7 +175,7 @@ class BlogController extends Controller
         return $slug;
     }
 
-    private function slugExistsInRouteSpace(string $slug, ?Blog $blog = null): bool
+    private function slugExistsInRouteSpace(string $slug, ?ProjectVideo $video = null): bool
     {
         if ($slug === '') {
             return true;
@@ -182,20 +185,20 @@ class BlogController extends Controller
             return true;
         }
 
-        $blogExists = Blog::query()
-            ->when($blog, function ($query) use ($blog) {
-                $query->where('id', '!=', $blog->id);
+        $videoExists = ProjectVideo::query()
+            ->when($video, function ($query) use ($video) {
+                $query->where('id', '!=', $video->id);
             })
             ->where('slug', $slug)
             ->exists();
 
-        if ($blogExists) {
+        if ($videoExists) {
             return true;
         }
 
         return Project::query()->where('slug', $slug)->exists()
             || ProjectDetailPage::query()->where('slug', $slug)->exists()
-            || ProjectVideo::query()->where('slug', $slug)->exists()
+            || Blog::query()->where('slug', $slug)->exists()
             || Page::query()->where('slug', $slug)->exists();
     }
 

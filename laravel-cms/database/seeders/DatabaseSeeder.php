@@ -18,8 +18,9 @@ class DatabaseSeeder extends Seeder
             PageSeeder::class,
             SiteSettingSeeder::class,
             MenuItemSeeder::class,
-            BlogSeeder::class,
             ProjectMockupSeeder::class,
+            VideoSeeder::class,
+            BlogSeeder::class,
         ]);
     }
 }

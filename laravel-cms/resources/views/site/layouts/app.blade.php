@@ -46,6 +46,9 @@
     $ogImageUrl = $toAbsoluteUrl($siteSettings['seo_og_image'] ?? ($siteSettings['header_logo'] ?? null));
     $logoSchemaUrl = $toAbsoluteUrl($siteSettings['header_logo'] ?? null);
 
+    $themeStylesVersion = is_file(public_path('theme/styles.css')) ? filemtime(public_path('theme/styles.css')) : null;
+    $themeScriptVersion = is_file(public_path('theme/script.js')) ? filemtime(public_path('theme/script.js')) : null;
+
     $websiteUrl = trim((string) ($siteSettings['footer_website'] ?? ''));
     $websiteUrl = $websiteUrl !== '' ? $websiteUrl : ($canonicalBase !== '' ? $canonicalBase : config('app.url'));
 
@@ -97,6 +100,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
@@ -127,7 +131,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ $faviconUrl ?? '/theme/logohome.png' }}">
-    <link rel="stylesheet" href="/theme/styles.css">
+    <link rel="stylesheet" href="{{ asset('theme/styles.css') }}{{ $themeStylesVersion ? '?v=' . $themeStylesVersion : '' }}">
 
     @if (!empty($organizationSchema))
         <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
@@ -188,7 +192,7 @@
 
     @include('site.partials.floating-contact')
 
-    <script src="/theme/script.js"></script>
+    <script src="{{ asset('theme/script.js') }}{{ $themeScriptVersion ? '?v=' . $themeScriptVersion : '' }}"></script>
     @stack('scripts')
 </body>
 

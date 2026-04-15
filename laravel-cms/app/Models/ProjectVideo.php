@@ -15,9 +15,15 @@ class ProjectVideo extends Model
     protected $fillable = [
         'project_id',
         'title',
+        'slug',
         'video_url',
         'thumbnail_image',
         'description',
+        'content',
+        'display_zone',
+        'seo_title',
+        'seo_description',
+        'published_at',
         'sort_order',
         'is_published',
     ];
@@ -26,6 +32,8 @@ class ProjectVideo extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'project_id' => 'integer',
+        'published_at' => 'datetime',
         'is_published' => 'boolean',
     ];
 
@@ -42,5 +50,18 @@ class ProjectVideo extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function scopeInDisplayZones($query, array $zones)
+    {
+        $zones = array_values(array_filter($zones, function ($zone) {
+            return is_string($zone) && trim($zone) !== '';
+        }));
+
+        if (empty($zones)) {
+            return $query;
+        }
+
+        return $query->whereIn('display_zone', $zones);
     }
 }

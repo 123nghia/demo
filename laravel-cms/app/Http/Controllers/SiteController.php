@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Blog;
 use App\Models\ContactMessage;
 use App\Models\Page;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
+use App\Models\ProjectVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -32,6 +34,38 @@ class SiteController extends Controller
             return view('site.projects.detail', [
                 'project' => $detailPage->project,
                 'detailPage' => $detailPage,
+            ]);
+        }
+
+        $video = $this->resolveProjectVideo($resolvedSlug);
+        if ($video instanceof ProjectVideo) {
+            return view('site.video.show', [
+                'video' => $video,
+                'relatedVideos' => $this->resolveRelatedVideos($video),
+                'page' => new Page([
+                    'name' => 'Chi tiết video',
+                    'slug' => $video->slug,
+                    'legacy_file' => 'site.video.show',
+                    'page_key' => 'video',
+                    'seo_title' => $video->seo_title ?: $video->title,
+                    'seo_description' => $video->seo_description ?: $video->description,
+                ]),
+            ]);
+        }
+
+        $blog = $this->resolveBlogPost($resolvedSlug);
+        if ($blog instanceof Blog) {
+            return view('site.blog.show', [
+                'blog' => $blog,
+                'relatedBlogs' => $this->resolveRelatedBlogs($blog),
+                'page' => new Page([
+                    'name' => 'Chi tiết blog',
+                    'slug' => $blog->slug,
+                    'legacy_file' => 'site.blog.show',
+                    'page_key' => 'blog',
+                    'seo_title' => $blog->seo_title ?: $blog->title,
+                    'seo_description' => $blog->seo_description ?: $blog->excerpt,
+                ]),
             ]);
         }
 
@@ -129,7 +163,7 @@ class SiteController extends Controller
                         $query->published()->ordered();
                     },
                     'videos' => function ($query) {
-                        $query->published()->ordered();
+                        $query->published()->inDisplayZones(['all', 'project'])->ordered();
                     },
                 ])
                 ->first();
@@ -159,6 +193,92 @@ class SiteController extends Controller
                 ->first();
         } catch (\Throwable $exception) {
             return null;
+        }
+    }
+
+    private function resolveProjectVideo(string $slug): ?ProjectVideo
+    {
+        try {
+            return ProjectVideo::query()
+                ->published()
+                ->where('slug', $slug)
+                ->whereHas('project', function ($query) {
+                    $query->published();
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'slug']);
+                    },
+                ])
+                ->first();
+        } catch (\Throwable $exception) {
+            return null;
+        }
+    }
+
+    private function resolveBlogPost(string $slug): ?Blog
+    {
+        try {
+            return Blog::query()
+                ->published()
+                ->where('slug', $slug)
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'slug']);
+                    },
+                ])
+                ->first();
+        } catch (\Throwable $exception) {
+            return null;
+        }
+    }
+
+    private function resolveRelatedVideos(ProjectVideo $video)
+    {
+        try {
+            return ProjectVideo::query()
+                ->published()
+                ->whereNotNull('slug')
+                ->where('id', '!=', $video->id)
+                ->when(!is_null($video->project_id), function ($query) use ($video) {
+                    $query->orderByRaw('CASE WHEN project_id = ? THEN 0 ELSE 1 END', [$video->project_id]);
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'slug']);
+                    },
+                ])
+                ->orderByDesc('published_at')
+                ->orderBy('sort_order')
+                ->orderByDesc('id')
+                ->limit(4)
+                ->get();
+        } catch (\Throwable $exception) {
+            return collect();
+        }
+    }
+
+    private function resolveRelatedBlogs(Blog $blog)
+    {
+        try {
+            return Blog::query()
+                ->published()
+                ->where('id', '!=', $blog->id)
+                ->when(!is_null($blog->project_id), function ($query) use ($blog) {
+                    $query->orderByRaw('CASE WHEN project_id = ? THEN 0 ELSE 1 END', [$blog->project_id]);
+                })
+                ->with([
+                    'project' => function ($query) {
+                        $query->select(['id', 'name', 'slug']);
+                    },
+                ])
+                ->orderByDesc('published_at')
+                ->orderBy('sort_order')
+                ->orderByDesc('id')
+                ->limit(4)
+                ->get();
+        } catch (\Throwable $exception) {
+            return collect();
         }
     }
 
@@ -227,6 +347,12 @@ class SiteController extends Controller
                 'name' => 'Liên hệ',
                 'slug' => 'lien-he',
                 'legacy_file' => 'lien-he',
+                'page_key' => 'contact',
+            ],
+            'dang-ky-dich-vu' => [
+                'name' => 'Đăng ký dịch vụ',
+                'slug' => 'dang-ky-dich-vu',
+                'legacy_file' => 'dang-ky-dich-vu',
                 'page_key' => 'contact',
             ],
             'thiet-ke-biet-thu-vinhomes-ocean-park' => [

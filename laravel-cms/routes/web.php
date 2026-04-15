@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\ProjectDetailPageController;
 use App\Http\Controllers\Admin\ProjectVideoController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\BlogController as SiteBlogController;
+use App\Http\Controllers\VideoController as SiteVideoController;
+use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +46,7 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::put('about-us-content', [AboutUsContentController::class, 'update'])->name('about-content.update');
     Route::resource('menu-items', MenuItemController::class)->except(['show']);
     Route::resource('blogs', BlogController::class)->except(['show']);
+    Route::resource('videos', VideoController::class)->except(['show']);
     Route::post('editor/upload-image', [EditorUploadController::class, 'store'])->name('editor.upload-image');
     Route::resource('projects', ProjectController::class)->except(['show']);
     Route::resource('projects.detail-pages', ProjectDetailPageController::class)
@@ -60,4 +63,6 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
 Route::post('/contact-submit', [SiteController::class, 'submitContact'])->name('site.contact.submit');
 Route::get('/blog', [SiteBlogController::class, 'index'])->name('site.blog.index');
 Route::get('/blog/{slug}', [SiteBlogController::class, 'show'])->name('site.blog.show');
+Route::get('/video', [SiteVideoController::class, 'index'])->name('site.video.index');
+Route::get('/video/{slug}', [SiteVideoController::class, 'show'])->name('site.video.show');
 Route::get('/{slug?}', [SiteController::class, 'show'])->where('slug', '.*')->name('site.page');

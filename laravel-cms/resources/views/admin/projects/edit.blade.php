@@ -222,7 +222,7 @@
             <div class="project-box">
                 <div class="project-box__head">
                     <h2 class="h6 mb-0">Video thực tế</h2>
-                    <a class="btn btn-sm btn-outline-dark" href="{{ route('admin.projects.videos.create', $project) }}">+ Thêm video</a>
+                    <a class="btn btn-sm btn-outline-dark" href="{{ route('admin.videos.create', ['project_id' => $project->id]) }}">+ Thêm video</a>
                 </div>
                 <div class="project-box__body p-0">
                     <div class="table-responsive">
@@ -230,9 +230,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Tiêu đề</th>
-                                    <th>Link video</th>
+                                    <th>Slug</th>
+                                    <th>Ngày đăng</th>
                                     <th>Trạng thái</th>
-                                    <th>Thứ tự</th>
                                     <th class="text-end">Hành động</th>
                                 </tr>
                             </thead>
@@ -240,7 +240,8 @@
                                 @forelse ($project->videos as $video)
                                     <tr>
                                         <td>{{ $video->title }}</td>
-                                        <td class="small text-muted">{{ \Illuminate\Support\Str::limit($video->video_url ?: '—', 42) }}</td>
+                                        <td><code>/{{ $video->slug }}</code></td>
+                                        <td>{{ optional($video->published_at)->format('d/m/Y H:i') ?: '—' }}</td>
                                         <td>
                                             @if ($video->is_published)
                                                 <span class="badge text-bg-success">Đang bật</span>
@@ -248,12 +249,15 @@
                                                 <span class="badge text-bg-secondary">Đang ẩn</span>
                                             @endif
                                         </td>
-                                        <td>{{ $video->sort_order }}</td>
                                         <td class="text-end">
                                             <a class="btn btn-sm btn-outline-dark"
-                                                href="{{ route('admin.projects.videos.edit', [$project, $video]) }}">Sửa</a>
+                                                href="{{ route('admin.videos.edit', $video) }}">Sửa</a>
+                                            @if (!empty($video->slug))
+                                                <a class="btn btn-sm btn-outline-primary" href="{{ url('/' . $video->slug) }}"
+                                                    target="_blank" rel="noreferrer noopener">Xem</a>
+                                            @endif
                                             <form class="d-inline"
-                                                action="{{ route('admin.projects.videos.destroy', [$project, $video]) }}"
+                                                action="{{ route('admin.videos.destroy', $video) }}"
                                                 method="post" onsubmit="return confirm('Xóa video này?');">
                                                 @csrf
                                                 @method('DELETE')
