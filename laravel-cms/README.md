@@ -125,7 +125,22 @@ Run once on server:
 
 `bash scripts/backup/backup_and_push.sh`
 
+### 4) Restore from backup
+
+Restore latest snapshot from backup Git repository:
+
+`bash scripts/backup/restore_backup.sh latest --source git --yes`
+
+Restore a specific snapshot from local backups:
+
+`bash scripts/backup/restore_backup.sh 20260416T013256Z --source local --yes`
+
+Dry run (validate selected snapshot without applying changes):
+
+`bash scripts/backup/restore_backup.sh latest --source git --dry-run`
+
 Notes:
 
 - Ensure server has push permission to `BACKUP_GIT_REMOTE` (SSH key or token).
+- Restore will overwrite database and configured asset paths.
 - Local temporary/working backup directories are ignored by Git.
