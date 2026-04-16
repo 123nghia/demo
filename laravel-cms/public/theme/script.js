@@ -16,6 +16,7 @@ const sliderTrack = document.querySelector("[data-slider-track]");
 const sliderPrev = document.querySelector("[data-slider-prev]");
 const sliderNext = document.querySelector("[data-slider-next]");
 const sliderSlides = sliderTrack ? [...sliderTrack.children] : [];
+const lazyMediaNodes = [...document.querySelectorAll("[data-lazy-src], [data-lazy-bg]")];
 const hoverRedirectCards = [...document.querySelectorAll("[data-hover-redirect]")];
 const previewImageCards = [...document.querySelectorAll("[data-image-preview]")];
 const detailGalleryImages = [...document.querySelectorAll(".detail-gallery__item img")];
@@ -119,6 +120,55 @@ function observeSections() {
   );
 
   sections.forEach((section) => observer.observe(section));
+}
+
+function applyLazyMedia(node) {
+  if (!(node instanceof HTMLElement) || node.dataset.lazyHydrated === "1") return;
+
+  const lazySrc = node.getAttribute("data-lazy-src");
+  if (lazySrc) {
+    if (node instanceof HTMLImageElement) {
+      node.src = lazySrc;
+    } else {
+      node.setAttribute("src", lazySrc);
+    }
+    node.removeAttribute("data-lazy-src");
+  }
+
+  const lazyBackground = node.getAttribute("data-lazy-bg");
+  if (lazyBackground) {
+    const escapedUrl = lazyBackground.replace(/"/g, '\\"');
+    node.style.backgroundImage = `url("${escapedUrl}")`;
+    node.removeAttribute("data-lazy-bg");
+  }
+
+  node.dataset.lazyHydrated = "1";
+}
+
+function initLazyMedia() {
+  if (!lazyMediaNodes.length) return;
+
+  if (!("IntersectionObserver" in window)) {
+    lazyMediaNodes.forEach((node) => applyLazyMedia(node));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        applyLazyMedia(entry.target);
+        observer.unobserve(entry.target);
+      });
+    },
+    {
+      root: scrollRoot,
+      rootMargin: "0px 0px 120px 0px",
+      threshold: 0.01,
+    },
+  );
+
+  lazyMediaNodes.forEach((node) => observer.observe(node));
 }
 
 function goToSlide(index) {
@@ -694,6 +744,7 @@ document.addEventListener("keydown", (event) => {
 
 observeSections();
 smoothAnchorLinks();
+initLazyMedia();
 bindHoverRedirects();
 stabilizeProjectDetailLayout();
 initHomeImagePreviewCards();

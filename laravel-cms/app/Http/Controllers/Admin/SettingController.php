@@ -25,6 +25,7 @@ class SettingController extends Controller
             'header_logo' => 'nullable|string|max:255',
             'footer_logo' => 'nullable|string|max:255',
             'favicon' => 'nullable|string|max:255',
+            'apple_touch_icon' => 'nullable|string|max:255',
             'seo_og_image' => 'nullable|string|max:255',
 
             'seo_default_title' => 'required|string|max:255',
@@ -32,6 +33,7 @@ class SettingController extends Controller
             'seo_keywords' => 'nullable|string|max:1000',
             'seo_robots' => 'required|string|max:255',
             'seo_canonical_base' => 'nullable|string|max:255',
+            'seo_google_site_verification' => 'nullable|string|max:255',
 
             'footer_company_name' => 'required|string|max:255',
             'footer_tax_code' => 'nullable|string|max:120',
@@ -50,13 +52,14 @@ class SettingController extends Controller
             'header_logo_file' => 'nullable|image|max:3072',
             'footer_logo_file' => 'nullable|image|max:3072',
             'favicon_file' => 'nullable|image|max:2048',
+            'apple_touch_icon_file' => 'nullable|image|max:3072',
             'seo_og_image_file' => 'nullable|image|max:4096',
         ]);
 
         $existingSettings = SiteSetting::allAsArray();
 
         $settings = collect($validated)
-            ->except(['header_logo_file', 'footer_logo_file', 'favicon_file', 'seo_og_image_file'])
+            ->except(['header_logo_file', 'footer_logo_file', 'favicon_file', 'apple_touch_icon_file', 'seo_og_image_file'])
             ->map(function ($value) {
                 if (!is_string($value)) {
                     return $value;
@@ -70,12 +73,14 @@ class SettingController extends Controller
         $this->replaceWithUploadedFile($request, 'header_logo_file', 'header_logo', $settings);
         $this->replaceWithUploadedFile($request, 'footer_logo_file', 'footer_logo', $settings);
         $this->replaceWithUploadedFile($request, 'favicon_file', 'favicon', $settings);
+        $this->replaceWithUploadedFile($request, 'apple_touch_icon_file', 'apple_touch_icon', $settings);
         $this->replaceWithUploadedFile($request, 'seo_og_image_file', 'seo_og_image', $settings);
 
         foreach ([
             ['file' => 'header_logo_file', 'key' => 'header_logo'],
             ['file' => 'footer_logo_file', 'key' => 'footer_logo'],
             ['file' => 'favicon_file', 'key' => 'favicon'],
+            ['file' => 'apple_touch_icon_file', 'key' => 'apple_touch_icon'],
             ['file' => 'seo_og_image_file', 'key' => 'seo_og_image'],
         ] as $imageField) {
             $settingKey = $imageField['key'];
