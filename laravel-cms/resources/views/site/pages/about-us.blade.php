@@ -9,7 +9,13 @@
 
 @section('content')
     @php
-        $aboutContent = is_array($aboutContent ?? null) ? $aboutContent : \App\Models\SiteSetting::aboutContentDefaults();
+        if (!is_array($aboutContent ?? null)) {
+            try {
+                $aboutContent = \App\Models\SiteSetting::aboutContent();
+            } catch (\Throwable $exception) {
+                $aboutContent = \App\Models\SiteSetting::aboutContentDefaults();
+            }
+        }
 
         $hero = data_get($aboutContent, 'hero', []);
         $mission = data_get($aboutContent, 'mission', []);
