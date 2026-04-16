@@ -29,6 +29,7 @@ class AdminUploadOnlyImagePreservationTest extends TestCase
             'header_logo' => '/uploads/settings/existing-header.png',
             'footer_logo' => '/uploads/settings/existing-footer.png',
             'favicon' => '/uploads/settings/existing-favicon.png',
+            'apple_touch_icon' => '/uploads/settings/existing-apple-touch.png',
             'seo_og_image' => '/uploads/settings/existing-og.png',
         ]);
 
@@ -43,6 +44,7 @@ class AdminUploadOnlyImagePreservationTest extends TestCase
         $this->assertSame('/uploads/settings/existing-header.png', data_get($settings, 'header_logo'));
         $this->assertSame('/uploads/settings/existing-footer.png', data_get($settings, 'footer_logo'));
         $this->assertSame('/uploads/settings/existing-favicon.png', data_get($settings, 'favicon'));
+        $this->assertSame('/uploads/settings/existing-apple-touch.png', data_get($settings, 'apple_touch_icon'));
         $this->assertSame('/uploads/settings/existing-og.png', data_get($settings, 'seo_og_image'));
     }
 

@@ -74,8 +74,9 @@
             <div class="category-grid category-grid--media">
                 @forelse ($videos as $video)
                     <article class="category-card category-card--video">
-                        <a href="{{ !empty($video->slug) ? url('/' . $video->slug) : route('site.video.index') }}">
-                            <img src="{{ $resolveImage($video->thumbnail_image) }}" alt="{{ $video->title }}">
+                        <a href="{{ !empty($video->slug) ? route('site.video.show', ['slug' => $video->slug]) : route('site.video.index') }}">
+                            <img src="{{ $resolveImage($video->thumbnail_image) }}" alt="{{ $video->title }}" loading="lazy"
+                                decoding="async">
                             <h3>{{ $video->title }}</h3>
                         </a>
                         <p class="video-card__meta">

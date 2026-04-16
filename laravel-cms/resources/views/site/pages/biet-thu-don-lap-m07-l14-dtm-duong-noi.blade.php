@@ -88,7 +88,8 @@
                 @foreach ($galleryImages as $index => $image)
                     <figure class="detail-gallery__item">
                         <img src="/theme/assets/hovi/gallery/{{ $image }}"
-                            alt="Phối cảnh dự án M07-L14 số {{ $index + 1 }}" loading="{{ $index === 0 ? 'eager' : 'lazy' }}">
+                            alt="Phối cảnh dự án M07-L14 số {{ $index + 1 }}" loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                            decoding="async" fetchpriority="{{ $index === 0 ? 'high' : 'auto' }}">
                     </figure>
                 @endforeach
             </div>
@@ -121,7 +122,7 @@
         <section class="detail-related">
             <div class="detail-section-heading">
                 <p class="eyebrow">Dự án liên quan</p>
-                <a class="detail-section-heading__link" href="javascript:void(0)" rel="noreferrer noopener">
+                <a class="detail-section-heading__link" href="{{ url('/thiet-ke-biet-thu-vinhomes-ocean-park') }}" rel="noreferrer noopener">
                     <h2>Xem thêm công trình cùng nhóm</h2>
                 </a>
             </div>
@@ -129,7 +130,8 @@
                 @foreach ($relatedProjects as $item)
                     <article class="detail-related__card">
                         <a href="{{ url('/biet-thu-don-lap-m07-l14-dtm-duong-noi') }}" rel="noreferrer noopener">
-                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}">
+                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}"
+                                loading="lazy" decoding="async">
                             <h3>{{ $item['title'] }}</h3>
                         </a>
                     </article>

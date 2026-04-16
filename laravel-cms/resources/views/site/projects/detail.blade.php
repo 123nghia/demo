@@ -93,7 +93,7 @@
                         <article class="detail-related__card">
                             <a href="{{ url('/' . $item->slug) }}" rel="noreferrer noopener">
                                 <img src="{{ $resolveImage($item->thumbnail_image, $resolveImage($project->cover_image)) }}"
-                                    alt="{{ $item->title }}">
+                                    alt="{{ $item->title }}" loading="lazy" decoding="async">
                                 <h3>{{ $item->title }}</h3>
                             </a>
                         </article>

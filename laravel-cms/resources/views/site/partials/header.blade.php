@@ -73,7 +73,8 @@
 
 <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="mobile-menu__header">
-        <img src="{{ $logoPath }}" alt="{{ $logoAlt }}" class="mobile-menu__logo">
+        <img src="{{ $logoPath }}" alt="{{ $logoAlt }}" class="mobile-menu__logo" loading="eager"
+            decoding="async">
         <button class="mobile-menu__close" type="button" data-close-menu aria-label="Đóng menu">×</button>
     </div>
     <nav class="mobile-menu__nav" aria-label="Điều hướng di động">
@@ -124,7 +125,8 @@
         </div>
 
         <a class="site-logo" href="{{ $homeHref }}" aria-label="{{ $logoAlt }}">
-            <img src="{{ $logoPath }}" alt="{{ $logoAlt }}">
+            <img src="{{ $logoPath }}" alt="{{ $logoAlt }}" loading="eager" fetchpriority="high"
+                decoding="async">
         </a>
 
         <div class="header-actions header-actions--right">
@@ -163,7 +165,7 @@
                 @if ($isActive) aria-current="page" @endif
                 @if ($link['open_in_new_tab']) target="_blank" rel="noreferrer noopener" @endif>
                 @if (!empty($link['is_home_icon']))
-                    <img src="/theme/assets/icons/icon-home.webp" alt="">
+                    <img src="/theme/assets/icons/icon-home.webp" alt="" loading="lazy" decoding="async">
                 @endif
                 <span>{{ $link['label'] }}</span>
             </a>

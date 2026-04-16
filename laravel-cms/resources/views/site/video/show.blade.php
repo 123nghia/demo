@@ -192,6 +192,60 @@
     </style>
 @endpush
 
+@php
+    $toAbsoluteSchemaUrl = function (?string $raw, ?string $fallback = null) {
+        $value = trim((string) $raw);
+        if ($value === '') {
+            $value = trim((string) $fallback);
+        }
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (\Illuminate\Support\Str::startsWith($value, ['http://', 'https://'])) {
+            return $value;
+        }
+
+        return url('/' . ltrim($value, '/'));
+    };
+
+    $videoSchemaThumbnail = $toAbsoluteSchemaUrl($video->thumbnail_image, '/theme/assets/hovi/gallery/hovi-034.jpg');
+    $videoPublisherLogo = $toAbsoluteSchemaUrl(data_get($siteSettings ?? [], 'header_logo', '/theme/logohome.png'));
+    $videoSourceUrl = $toAbsoluteSchemaUrl($video->video_url);
+    $videoPublishedDate = $video->published_at ?: $video->created_at;
+
+    $videoSchemaDescription = trim((string) ($video->seo_description ?: $video->description ?: $video->title));
+    $videoStructuredData = array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'VideoObject',
+        'name' => $video->title,
+        'description' => $videoSchemaDescription,
+        'thumbnailUrl' => !empty($videoSchemaThumbnail) ? [$videoSchemaThumbnail] : null,
+        'uploadDate' => $videoPublishedDate ? $videoPublishedDate->toAtomString() : null,
+        'dateModified' => $video->updated_at ? $video->updated_at->toAtomString() : null,
+        'contentUrl' => $videoSourceUrl,
+        'embedUrl' => $videoSourceUrl,
+        'url' => route('site.video.show', ['slug' => $video->slug]),
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => data_get($siteSettings ?? [], 'site_name', 'HOVI Việt Nam'),
+            'logo' => !empty($videoPublisherLogo)
+                ? [
+                    '@type' => 'ImageObject',
+                    'url' => $videoPublisherLogo,
+                ]
+                : null,
+        ],
+    ], function ($value) {
+        return !is_null($value) && $value !== '' && $value !== [];
+    });
+@endphp
+
+@push('structured_data')
+    <script type="application/ld+json">{!! json_encode($videoStructuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
+
 @section('content')
     @php
         $resolveImage = function ($raw, $fallback = '/theme/assets/hovi/gallery/hovi-034.jpg') {
@@ -254,7 +308,8 @@
                     </p>
                 @endif
 
-                <img class="video-detail-cover" src="{{ $resolveImage($video->thumbnail_image) }}" alt="{{ $video->title }}">
+                <img class="video-detail-cover" src="{{ $resolveImage($video->thumbnail_image) }}" alt="{{ $video->title }}"
+                    loading="eager" fetchpriority="high" decoding="async">
 
                 @if (!empty($video->description))
                     <p class="video-article-excerpt">{{ $video->description }}</p>
@@ -325,8 +380,9 @@
                 <div class="detail-related__grid">
                     @foreach ($relatedVideos as $item)
                         <article class="detail-related__card">
-                            <a href="{{ !empty($item->slug) ? url('/' . $item->slug) : route('site.video.index') }}">
-                                <img src="{{ $resolveImage($item->thumbnail_image) }}" alt="{{ $item->title }}">
+                            <a href="{{ !empty($item->slug) ? route('site.video.show', ['slug' => $item->slug]) : route('site.video.index') }}">
+                                <img src="{{ $resolveImage($item->thumbnail_image) }}" alt="{{ $item->title }}"
+                                    loading="lazy" decoding="async">
                                 <h3>{{ $item->title }}</h3>
                             </a>
                         </article>

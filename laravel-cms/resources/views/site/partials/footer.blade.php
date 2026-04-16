@@ -33,7 +33,8 @@
 <footer class="site-footer">
     <div class="site-footer__brand">
         <div class="site-footer__brand-top">
-            <img src="{{ $footerLogo }}" alt="{{ $brandName }}" class="site-footer__logo">
+            <img src="{{ $footerLogo }}" alt="{{ $brandName }}" class="site-footer__logo" loading="lazy"
+                decoding="async">
             <div class="site-footer__brand-text">
                 <p class="site-footer__brand-name">{{ mb_strtoupper($brandName) }}</p>
                 <p class="site-footer__brand-since">EST 2021</p>
@@ -71,14 +72,14 @@
     <div class="footer-grid">
         @if (!empty($address))
             <article class="footer-item">
-                <img src="/theme/assets/icons/icon-footer-1.webp" alt="">
+                <img src="/theme/assets/icons/icon-footer-1.webp" alt="" loading="lazy" decoding="async">
                 <p>{{ $address }}</p>
             </article>
         @endif
 
         @if (!empty($website))
             <article class="footer-item">
-                <img src="/theme/assets/icons/icon-footer-2.webp" alt="">
+                <img src="/theme/assets/icons/icon-footer-2.webp" alt="" loading="lazy" decoding="async">
                 <p>
                     <a href="{{ $website }}" target="_blank" rel="noreferrer noopener">
                         {{ $websiteLabel ?: $website }}
@@ -89,14 +90,14 @@
 
         @if (!empty($email))
             <article class="footer-item">
-                <img src="/theme/assets/icons/icon-footer-3.webp" alt="">
+                <img src="/theme/assets/icons/icon-footer-3.webp" alt="" loading="lazy" decoding="async">
                 <p><a href="mailto:{{ $email }}">{{ $email }}</a></p>
             </article>
         @endif
 
         @if (!empty($phone))
             <article class="footer-item">
-                <img src="/theme/assets/icons/icon-footer-4.webp" alt="">
+                <img src="/theme/assets/icons/icon-footer-4.webp" alt="" loading="lazy" decoding="async">
                 <p><a href="tel:{{ preg_replace('/\D+/', '', $phone) }}">{{ $phone }}</a></p>
             </article>
         @endif

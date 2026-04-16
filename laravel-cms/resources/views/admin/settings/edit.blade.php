@@ -79,6 +79,21 @@
                     <input class="form-control" id="favicon_file" name="favicon_file" type="file" accept="image/*">
                     <div class="form-text">Upload file để thay favicon hiện tại.</div>
                 </div>
+
+                <div class="col-md-6">
+                    @php $appleTouchIcon = $value('apple_touch_icon'); @endphp
+                    <label class="form-label" for="apple_touch_icon_file">Apple touch icon</label>
+                    <input id="apple_touch_icon" name="apple_touch_icon" type="hidden" value="{{ $appleTouchIcon }}">
+                    @if (!empty($appleTouchIcon))
+                        <div class="mb-2">
+                            <img src="{{ $appleTouchIcon }}" alt="Apple touch icon hiện tại"
+                                style="max-height:56px;max-width:100%;object-fit:contain;border:1px solid #dee2e6;border-radius:.5rem;padding:.25rem;background:#fff;">
+                        </div>
+                    @endif
+                    <input class="form-control" id="apple_touch_icon_file" name="apple_touch_icon_file" type="file"
+                        accept="image/*">
+                    <div class="form-text">Icon dành cho iOS home screen (khuyến nghị 180x180).</div>
+                </div>
             </div>
         </div>
 
@@ -112,6 +127,14 @@
                     <label class="form-label" for="seo_canonical_base">Canonical base URL</label>
                     <input class="form-control" id="seo_canonical_base" name="seo_canonical_base" type="text"
                         value="{{ $value('seo_canonical_base') }}" placeholder="https://example.com">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="seo_google_site_verification">Google site verification</label>
+                    <input class="form-control" id="seo_google_site_verification" name="seo_google_site_verification"
+                        type="text" value="{{ $value('seo_google_site_verification') }}"
+                        placeholder="Mã xác minh từ Google Search Console">
+                    <div class="form-text">Dán mã để xác minh website với Google Search Console.</div>
                 </div>
 
                 <div class="col-12">

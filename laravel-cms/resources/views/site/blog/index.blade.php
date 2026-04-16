@@ -74,8 +74,9 @@
             <div class="category-grid category-grid--media">
                 @forelse ($blogs as $blog)
                     <article class="category-card category-card--blog">
-                        <a href="{{ url('/' . $blog->slug) }}">
-                            <img src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}">
+                        <a href="{{ route('site.blog.show', ['slug' => $blog->slug]) }}">
+                            <img src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}" loading="lazy"
+                                decoding="async">
                             <h3>{{ $blog->title }}</h3>
                         </a>
                         <p class="blog-card__meta">

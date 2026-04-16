@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ProjectDetailPageController;
 use App\Http\Controllers\Admin\ProjectVideoController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\BlogController as SiteBlogController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\VideoController as SiteVideoController;
 use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\SiteController;
@@ -67,4 +68,5 @@ Route::get('/blog', [SiteBlogController::class, 'index'])->name('site.blog.index
 Route::get('/blog/{slug}', [SiteBlogController::class, 'show'])->name('site.blog.show');
 Route::get('/video', [SiteVideoController::class, 'index'])->name('site.video.index');
 Route::get('/video/{slug}', [SiteVideoController::class, 'show'])->name('site.video.show');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('site.sitemap');
 Route::get('/{slug?}', [SiteController::class, 'show'])->where('slug', '.*')->name('site.page');

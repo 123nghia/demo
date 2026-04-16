@@ -147,6 +147,60 @@
     </style>
 @endpush
 
+@php
+    $toAbsoluteSchemaUrl = function (?string $raw, ?string $fallback = null) {
+        $value = trim((string) $raw);
+        if ($value === '') {
+            $value = trim((string) $fallback);
+        }
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (\Illuminate\Support\Str::startsWith($value, ['http://', 'https://'])) {
+            return $value;
+        }
+
+        return url('/' . ltrim($value, '/'));
+    };
+
+    $blogSchemaImage = $toAbsoluteSchemaUrl($blog->thumbnail_image, '/theme/assets/hovi/gallery/hovi-036.jpg');
+    $blogPublisherLogo = $toAbsoluteSchemaUrl(data_get($siteSettings ?? [], 'header_logo', '/theme/logohome.png'));
+    $blogPublishedDate = $blog->published_at ?: $blog->created_at;
+
+    $blogStructuredData = array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'Article',
+        'mainEntityOfPage' => route('site.blog.show', ['slug' => $blog->slug]),
+        'headline' => $blog->title,
+        'description' => trim((string) ($blog->seo_description ?: $blog->excerpt ?: $blog->title)),
+        'image' => !empty($blogSchemaImage) ? [$blogSchemaImage] : null,
+        'datePublished' => $blogPublishedDate ? $blogPublishedDate->toAtomString() : null,
+        'dateModified' => $blog->updated_at ? $blog->updated_at->toAtomString() : null,
+        'author' => [
+            '@type' => 'Organization',
+            'name' => data_get($siteSettings ?? [], 'site_name', 'HOVI Việt Nam'),
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => data_get($siteSettings ?? [], 'site_name', 'HOVI Việt Nam'),
+            'logo' => !empty($blogPublisherLogo)
+                ? [
+                    '@type' => 'ImageObject',
+                    'url' => $blogPublisherLogo,
+                ]
+                : null,
+        ],
+    ], function ($value) {
+        return !is_null($value) && $value !== '' && $value !== [];
+    });
+@endphp
+
+@push('structured_data')
+    <script type="application/ld+json">{!! json_encode($blogStructuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
+
 @section('content')
     @php
         $resolveImage = function ($raw, $fallback = '/theme/assets/hovi/gallery/hovi-036.jpg') {
@@ -181,7 +235,8 @@
                     </p>
                 @endif
 
-                <img class="blog-detail-cover" src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}">
+                <img class="blog-detail-cover" src="{{ $resolveImage($blog->thumbnail_image) }}" alt="{{ $blog->title }}"
+                    loading="eager" fetchpriority="high" decoding="async">
 
                 @if (!empty($blog->excerpt))
                     <p class="blog-article-excerpt">{{ $blog->excerpt }}</p>
@@ -233,8 +288,9 @@
                 <div class="detail-related__grid">
                     @foreach ($relatedBlogs as $item)
                         <article class="detail-related__card">
-                            <a href="{{ url('/' . $item->slug) }}">
-                                <img src="{{ $resolveImage($item->thumbnail_image) }}" alt="{{ $item->title }}">
+                            <a href="{{ route('site.blog.show', ['slug' => $item->slug]) }}">
+                                <img src="{{ $resolveImage($item->thumbnail_image) }}" alt="{{ $item->title }}"
+                                    loading="lazy" decoding="async">
                                 <h3>{{ $item->title }}</h3>
                             </a>
                         </article>

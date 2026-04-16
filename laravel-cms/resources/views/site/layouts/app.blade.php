@@ -28,6 +28,10 @@
         ? $canonicalBase . ($requestPath !== '' ? '/' . $requestPath : '')
         : url()->current();
 
+    $resolvedPageKeyForMeta = trim((string) ($page->page_key ?? ''));
+    $isDetailContentPage = in_array($resolvedPageKeyForMeta, ['blog', 'video', 'project'], true) && str_contains($requestPath, '/');
+    $ogType = $isDetailContentPage ? 'article' : 'website';
+
     $toAbsoluteUrl = function ($value) {
         $value = trim((string) $value);
 
@@ -43,11 +47,28 @@
     };
 
     $faviconUrl = $toAbsoluteUrl($siteSettings['favicon'] ?? '/theme/logohome.png');
+    $appleTouchIconUrl = $toAbsoluteUrl($siteSettings['apple_touch_icon'] ?? ($siteSettings['favicon'] ?? '/theme/logohome.png'));
     $ogImageUrl = $toAbsoluteUrl($siteSettings['seo_og_image'] ?? ($siteSettings['header_logo'] ?? null));
     $logoSchemaUrl = $toAbsoluteUrl($siteSettings['header_logo'] ?? null);
+    $googleSiteVerification = trim((string) ($siteSettings['seo_google_site_verification'] ?? ''));
 
     $themeStylesVersion = is_file(public_path('theme/styles.css')) ? filemtime(public_path('theme/styles.css')) : null;
     $themeScriptVersion = is_file(public_path('theme/script.js')) ? filemtime(public_path('theme/script.js')) : null;
+    $themeStylesheetUrl = asset('theme/styles.css') . ($themeStylesVersion ? '?v=' . $themeStylesVersion : '');
+    $themeScriptUrl = asset('theme/script.js') . ($themeScriptVersion ? '?v=' . $themeScriptVersion : '');
+
+    $homeHeroImage = null;
+    $isHomeRequest = $requestPath === '';
+    if ($isHomeRequest) {
+        $heroBackgroundImage = trim((string) data_get($homeContent ?? [], 'hero.background_image', ''));
+        $heroPath = ltrim((string) (parse_url($heroBackgroundImage, PHP_URL_PATH) ?: $heroBackgroundImage), '/');
+
+        if ($heroBackgroundImage === '' || in_array($heroPath, ['theme/assets/hero.jpg', 'assets/hero.jpg'], true)) {
+            $heroBackgroundImage = '/theme/assets/hovi/gallery/hovi-060.jpg';
+        }
+
+        $homeHeroImage = $toAbsoluteUrl($heroBackgroundImage);
+    }
 
     $websiteUrl = trim((string) ($siteSettings['footer_website'] ?? ''));
     $websiteUrl = $websiteUrl !== '' ? $websiteUrl : ($canonicalBase !== '' ? $canonicalBase : config('app.url'));
@@ -96,6 +117,21 @@
     $organizationSchema = array_filter($organizationSchema, function ($value) {
         return !is_null($value) && $value !== '' && $value !== [];
     });
+
+    $websiteSchema = array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => $siteSettings['site_name'] ?? config('app.name'),
+        'url' => $websiteUrl,
+        'inLanguage' => 'vi-VN',
+    ], function ($value) {
+        return !is_null($value) && $value !== '' && $value !== [];
+    });
+
+    $baseStructuredData = array_values(array_filter([
+        $organizationSchema,
+        $websiteSchema,
+    ]));
 @endphp
 
 <head>
@@ -115,19 +151,31 @@
     </script>
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
+    <meta name="author" content="{{ $siteSettings['site_name'] ?? 'HOVI Việt Nam' }}">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     @if (!empty($metaKeywords))
         <meta name="keywords" content="{{ $metaKeywords }}">
     @endif
+    @if (!empty($googleSiteVerification))
+        <meta name="google-site-verification" content="{{ $googleSiteVerification }}">
+    @endif
     <meta name="robots" content="{{ $robotsContent }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="vi-VN" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $canonicalUrl }}">
 
     <meta property="og:locale" content="vi_VN">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:site_name" content="{{ $siteSettings['site_name'] ?? 'HOVI Việt Nam' }}">
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ $metaDescription }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
     @if (!empty($ogImageUrl))
         <meta property="og:image" content="{{ $ogImageUrl }}">
+        <meta property="og:image:alt" content="{{ $pageTitle }}">
+    @endif
+    @if (isset($page) && !empty($page->updated_at))
+        <meta property="og:updated_time" content="{{ optional($page->updated_at)->toAtomString() }}">
     @endif
 
     <meta name="twitter:card" content="{{ !empty($ogImageUrl) ? 'summary_large_image' : 'summary' }}">
@@ -138,17 +186,35 @@
     @endif
 
     <meta name="theme-color" content="#050505">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Marcellus&family=Open+Sans:wght@400;600&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Open+Sans:wght@400;600&display=swap"
+        rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Open+Sans:wght@400;600&display=swap"
+            rel="stylesheet">
+    </noscript>
     <link rel="icon" href="{{ $faviconUrl ?? '/theme/logohome.png' }}">
-    <link rel="stylesheet" href="{{ asset('theme/styles.css') }}{{ $themeStylesVersion ? '?v=' . $themeStylesVersion : '' }}">
+    <link rel="apple-touch-icon" href="{{ $appleTouchIconUrl ?? ($faviconUrl ?? '/theme/logohome.png') }}">
+    @if (!empty($logoSchemaUrl))
+        <link rel="preload" as="image" href="{{ $logoSchemaUrl }}" fetchpriority="high">
+    @endif
+    @if (!empty($homeHeroImage))
+        <link rel="preload" as="image" href="{{ $homeHeroImage }}" fetchpriority="high">
+    @endif
+    <link rel="preload" as="style" href="{{ $themeStylesheetUrl }}">
+    <link rel="stylesheet" href="{{ $themeStylesheetUrl }}">
 
-    @if (!empty($organizationSchema))
-        <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    @if (!empty($baseStructuredData))
+        <script type="application/ld+json">{!! json_encode(count($baseStructuredData) === 1 ? $baseStructuredData[0] : $baseStructuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     @endif
 
     @stack('head')
+    @stack('structured_data')
 </head>
 
 @php
@@ -214,7 +280,7 @@
             }, 2500);
         })();
     </script>
-    <script src="{{ asset('theme/script.js') }}{{ $themeScriptVersion ? '?v=' . $themeScriptVersion : '' }}"></script>
+    <script src="{{ $themeScriptUrl }}" defer></script>
     @stack('scripts')
 </body>
 
