@@ -39,7 +39,7 @@ done
 BACKUP_LOCAL_DIR="${BACKUP_LOCAL_DIR:-$PROJECT_ROOT/.local-backups}"
 BACKUP_TMP_DIR="${BACKUP_TMP_DIR:-$PROJECT_ROOT/.backup-tmp}"
 BACKUP_ASSET_PATHS="${BACKUP_ASSET_PATHS:-public/uploads storage/app/public}"
-BACKUP_KEEP_COUNT="${BACKUP_KEEP_COUNT:-56}"
+BACKUP_KEEP_COUNT="${BACKUP_KEEP_COUNT:-2}"
 BACKUP_GIT_REMOTE="${BACKUP_GIT_REMOTE:-}"
 BACKUP_GIT_BRANCH="${BACKUP_GIT_BRANCH:-main}"
 BACKUP_GIT_DIR="${BACKUP_GIT_DIR:-$PROJECT_ROOT/.backup-repo}"
@@ -83,7 +83,7 @@ timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 run_tmp_dir="$BACKUP_TMP_DIR/$timestamp"
 run_output_dir="$BACKUP_LOCAL_DIR/$timestamp"
 
-mkdir -p "$run_tmp_dir" "$run_output_dir"
+mkdir -p "$run_tmp_dir"
 
 db_name="${DB_DATABASE:-hovi_cms}"
 db_dump_file="$run_tmp_dir/db-${db_name}-${timestamp}.sql.gz"
@@ -91,7 +91,7 @@ asset_archive_file="$run_tmp_dir/assets-${timestamp}.tar.gz"
 manifest_file="$run_tmp_dir/manifest-${timestamp}.txt"
 
 echo "[backup] Dumping database from mysql container..."
-docker compose exec -T mysql sh -lc 'exec mysqldump --single-transaction --quick --lock-tables=false -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
+docker compose exec -T mysql sh -lc 'exec mysqldump --single-transaction --quick --lock-tables=false --skip-comments -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
   | gzip -c > "$db_dump_file"
 
 echo "[backup] Archiving asset paths..."
@@ -120,6 +120,41 @@ echo "[backup] Writing manifest..."
   sha256sum "$db_dump_file"
   sha256sum "$asset_archive_file"
 } > "$manifest_file"
+
+find_latest_snapshot_dir() {
+  local target_dir="$1"
+  if [[ ! -d "$target_dir" ]]; then
+    return 0
+  fi
+
+  find "$target_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+    | grep -E '^[0-9]{8}T[0-9]{6}Z$' \
+    | sort -r \
+    | head -n 1
+}
+
+current_db_sha="$(sha256sum "$db_dump_file" | awk '{print $1}')"
+current_assets_sha="$(sha256sum "$asset_archive_file" | awk '{print $1}')"
+
+latest_local_snapshot="$(find_latest_snapshot_dir "$BACKUP_LOCAL_DIR" || true)"
+if [[ -n "$latest_local_snapshot" ]]; then
+  latest_snapshot_dir="$BACKUP_LOCAL_DIR/$latest_local_snapshot"
+  latest_db_file="$(find "$latest_snapshot_dir" -maxdepth 1 -type f -name 'db-*.sql.gz' | sort | head -n 1 || true)"
+  latest_assets_file="$(find "$latest_snapshot_dir" -maxdepth 1 -type f -name 'assets-*.tar.gz' | sort | head -n 1 || true)"
+
+  if [[ -n "$latest_db_file" && -n "$latest_assets_file" && -f "$latest_db_file" && -f "$latest_assets_file" ]]; then
+    latest_db_sha="$(sha256sum "$latest_db_file" | awk '{print $1}')"
+    latest_assets_sha="$(sha256sum "$latest_assets_file" | awk '{print $1}')"
+
+    if [[ "$current_db_sha" = "$latest_db_sha" && "$current_assets_sha" = "$latest_assets_sha" ]]; then
+      rm -rf "$run_tmp_dir"
+      echo "[backup] No data or asset changes detected. Keep existing backups unchanged."
+      exit 0
+    fi
+  fi
+fi
+
+mkdir -p "$run_output_dir"
 
 cp -a "$run_tmp_dir/." "$run_output_dir/"
 rm -rf "$run_tmp_dir"

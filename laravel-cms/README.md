@@ -112,7 +112,7 @@ Optional settings:
 
 - `BACKUP_GIT_BRANCH` (default `main`)
 - `BACKUP_GIT_SUBDIR` (default `backups/hovi-cms`)
-- `BACKUP_KEEP_COUNT` (default `56` backups, ~14 days if 6-hour interval)
+- `BACKUP_KEEP_COUNT` (default `2` backups)
 - `BACKUP_ASSET_PATHS` (default `public/uploads storage/app/public`)
 - `BACKUP_CRON_EXPR` (default `0 */6 * * *`)
 
@@ -143,5 +143,6 @@ Dry run (validate selected snapshot without applying changes):
 Notes:
 
 - Ensure repository remote has push permission (or set `BACKUP_GIT_REMOTE` to a dedicated backup repo).
+- Backup only creates a new snapshot when database/assets change; if unchanged, it keeps existing snapshots as-is.
 - Restore will overwrite database and configured asset paths.
 - Local temporary/working backup directories are ignored by Git.
