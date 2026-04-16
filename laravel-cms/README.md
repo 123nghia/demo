@@ -63,22 +63,33 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-## Run with Docker
+## Run with Docker + Nginx + SSL
 
 From the `laravel-cms` folder:
 
-1. Build and start container:
+1. Update `.env` values:
+   - `LE_EMAIL`: your real email for Let's Encrypt
+   - `DB_PASSWORD` / `DB_ROOT_PASSWORD`: strong passwords
+
+2. Build and start all services:
 
 	`docker compose up --build -d`
 
-2. Open app at:
+3. App will automatically run:
+   - `php artisan migrate --force`
 
-	`http://localhost:8000`
+   Seeder is disabled by default (`RUN_SEEDER=false`) to avoid changing data during deploy.
+   If you need seeding, set `RUN_SEEDER=true` explicitly.
 
-3. (Optional) run migrations:
+4. Open app at:
 
-	`docker compose exec app php artisan migrate`
+	`https://hovi-content.annamloi.com`
 
-4. Stop container:
+5. SSL notes:
+   - Nginx starts with a temporary self-signed cert if Let's Encrypt cert is not ready yet.
+   - Certbot runs renewal automatically every 12 hours.
+   - Set DNS A record of `hovi-content.annamloi.com` to your server IP for successful certificate issuance.
+
+6. Stop container:
 
 	`docker compose down`

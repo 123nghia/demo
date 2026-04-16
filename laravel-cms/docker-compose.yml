@@ -3,13 +3,90 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel-cms-app
+    container_name: hovi-cms-app
+    restart: unless-stopped
     working_dir: /var/www/html
-    ports:
-      - "8000:8000"
     volumes:
       - ./:/var/www/html
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-    command: php artisan serve --host=0.0.0.0 --port=8000
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-https://hovi-content.annamloi.com}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-hovi_cms}
+      DB_USERNAME: ${DB_USERNAME:-hovi}
+      DB_PASSWORD: ${DB_PASSWORD:-hovi_password}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEEDER: ${RUN_SEEDER:-false}
+      DB_WAIT_TIMEOUT: ${DB_WAIT_TIMEOUT:-120}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: hovi-cms-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    networks:
+      - default
+      - tikitech_network
+    environment:
+      DOMAIN: ${DOMAIN:-hovi-content.annamloi.com}
+      CERT_NAME: ${CERT_NAME:-hovi-content.annamloi.com}
+    volumes:
+      - ./:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/start.sh:/start.sh:ro
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    command: ["/bin/sh", "/start.sh"]
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: hovi-cms-certbot
+    restart: unless-stopped
+    depends_on:
+      - nginx
+    environment:
+      DOMAIN: ${DOMAIN:-hovi-content.annamloi.com}
+      CERT_NAME: ${CERT_NAME:-hovi-content.annamloi.com}
+      LE_EMAIL: ${LE_EMAIL:-admin@example.com}
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+      - ./docker/certbot/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+
+  mysql:
+    image: mysql:8.0
+    container_name: hovi-cms-mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-hovi_cms}
+      MYSQL_USER: ${DB_USERNAME:-hovi}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-hovi_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:
+  certbot_www:
+  certbot_certs:
+
+networks:
+  tikitech_network:
+    external: true
+    name: tikitech_network

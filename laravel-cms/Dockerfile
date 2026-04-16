@@ -1,9 +1,10 @@
-FROM php:8.1-cli
+FROM php:8.1-fpm
 
 # System packages and PHP extensions required by Laravel
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    curl \
     libzip-dev \
     libpng-dev \
     libjpeg62-turbo-dev \
@@ -30,7 +31,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
-EXPOSE 8000
+EXPOSE 9000
 
 ENTRYPOINT ["entrypoint"]
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["php-fpm"]
