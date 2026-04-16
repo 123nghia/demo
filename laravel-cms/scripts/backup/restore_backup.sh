@@ -219,13 +219,22 @@ container_project_root="/var/www/html"
 container_assets_archive="${assets_archive_file/#$PROJECT_ROOT/$container_project_root}"
 
 container_cleanup_cmd=""
+container_fix_cmd=""
 for relative_path in $BACKUP_ASSET_PATHS; do
   if [[ -n "$container_cleanup_cmd" ]]; then
     container_cleanup_cmd+=" "
   fi
   container_cleanup_cmd+="'$container_project_root/$relative_path'"
+
+  container_fix_cmd+="mkdir -p '$container_project_root/$relative_path' && "
+  container_fix_cmd+="chown -R www-data:www-data '$container_project_root/$relative_path' && "
+  container_fix_cmd+="chmod -R ug+rwX '$container_project_root/$relative_path' && "
 done
 
+# remove trailing " && "
+container_fix_cmd="${container_fix_cmd% && }"
+
 docker compose exec -T app sh -lc "rm -rf $container_cleanup_cmd && tar -xzf '$container_assets_archive' -C '$container_project_root'"
+docker compose exec -T app sh -lc "$container_fix_cmd"
 
 echo "[restore] Done: $RESTORE_TIMESTAMP"
