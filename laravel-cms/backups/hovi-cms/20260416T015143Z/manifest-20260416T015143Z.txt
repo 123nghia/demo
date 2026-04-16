@@ -1,0 +1,6 @@
+timestamp=20260416T015143Z
+project_root=/home/cloud/customer/hovi/laravel-cms
+db_dump=db-hovi_cms-20260416T015143Z.sql.gz
+assets_archive=assets-20260416T015143Z.tar.gz
+3b216b03797bfed3060143a603b5fa32f67d611a803f0b2c3a9544712f11fcbf  /home/cloud/customer/hovi/laravel-cms/.backup-tmp/20260416T015143Z/db-hovi_cms-20260416T015143Z.sql.gz
+7e6cd17b6d404b60d7d2c245f7a4dd03b14438af6ab681c147efc6b3845f8b84  /home/cloud/customer/hovi/laravel-cms/.backup-tmp/20260416T015143Z/assets-20260416T015143Z.tar.gz
