@@ -93,3 +93,39 @@ From the `laravel-cms` folder:
 6. Stop container:
 
 	`docker compose down`
+
+## Auto backup database + assets every 6 hours
+
+Two scripts are provided:
+
+- `scripts/backup/backup_and_push.sh`: creates DB + assets backup and pushes to a backup Git repository
+- `scripts/backup/install_cron.sh`: installs cron job (default every 6 hours)
+
+### 1) Configure `.env`
+
+Set at least:
+
+- `BACKUP_GIT_REMOTE`: SSH/HTTPS URL of backup repository
+
+Optional settings:
+
+- `BACKUP_GIT_BRANCH` (default `main`)
+- `BACKUP_GIT_SUBDIR` (default `hovi-cms`)
+- `BACKUP_KEEP_COUNT` (default `56` backups, ~14 days if 6-hour interval)
+- `BACKUP_ASSET_PATHS` (default `public/uploads storage/app/public`)
+- `BACKUP_CRON_EXPR` (default `0 */6 * * *`)
+
+### 2) Install cron job
+
+Run once on server:
+
+`bash scripts/backup/install_cron.sh`
+
+### 3) Run manual test backup
+
+`bash scripts/backup/backup_and_push.sh`
+
+Notes:
+
+- Ensure server has push permission to `BACKUP_GIT_REMOTE` (SSH key or token).
+- Local temporary/working backup directories are ignored by Git.
