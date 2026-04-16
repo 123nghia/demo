@@ -159,12 +159,12 @@
                 });
         }
 
+        $heroFallbackImage = '/theme/assets/hero.jpg';
         $rawHeroBackgroundImage = trim((string) data_get($heroContent, 'background_image', ''));
-        $heroPath = ltrim((string) (parse_url($rawHeroBackgroundImage, PHP_URL_PATH) ?: $rawHeroBackgroundImage), '/');
-        if ($rawHeroBackgroundImage === '' || in_array($heroPath, ['theme/assets/hero.jpg', 'assets/hero.jpg'], true)) {
-            $rawHeroBackgroundImage = '/theme/assets/hovi/gallery/hovi-060.jpg';
+        if ($rawHeroBackgroundImage === '') {
+            $rawHeroBackgroundImage = $heroFallbackImage;
         }
-        $heroBackgroundImage = $toImageUrl($rawHeroBackgroundImage, '/theme/assets/hovi/gallery/hovi-060.jpg');
+        $heroBackgroundImage = $toImageUrl($rawHeroBackgroundImage, $heroFallbackImage);
         $heroDefaultScrollTarget = $hasProjectsSection1 ? '#projects-1' : '#profile';
         $heroScrollTarget = $toHref(data_get($heroContent, 'scroll_target'), $heroDefaultScrollTarget);
 

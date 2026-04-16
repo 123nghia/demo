@@ -60,11 +60,11 @@
     $homeHeroImage = null;
     $isHomeRequest = $requestPath === '';
     if ($isHomeRequest) {
+        $heroFallbackImage = '/theme/assets/hero.jpg';
         $heroBackgroundImage = trim((string) data_get($homeContent ?? [], 'hero.background_image', ''));
-        $heroPath = ltrim((string) (parse_url($heroBackgroundImage, PHP_URL_PATH) ?: $heroBackgroundImage), '/');
 
-        if ($heroBackgroundImage === '' || in_array($heroPath, ['theme/assets/hero.jpg', 'assets/hero.jpg'], true)) {
-            $heroBackgroundImage = '/theme/assets/hovi/gallery/hovi-060.jpg';
+        if ($heroBackgroundImage === '') {
+            $heroBackgroundImage = $heroFallbackImage;
         }
 
         $homeHeroImage = $toAbsoluteUrl($heroBackgroundImage);
