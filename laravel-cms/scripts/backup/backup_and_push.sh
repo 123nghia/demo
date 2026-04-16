@@ -43,21 +43,41 @@ BACKUP_KEEP_COUNT="${BACKUP_KEEP_COUNT:-56}"
 BACKUP_GIT_REMOTE="${BACKUP_GIT_REMOTE:-}"
 BACKUP_GIT_BRANCH="${BACKUP_GIT_BRANCH:-main}"
 BACKUP_GIT_DIR="${BACKUP_GIT_DIR:-$PROJECT_ROOT/.backup-repo}"
-BACKUP_GIT_SUBDIR="${BACKUP_GIT_SUBDIR:-hovi-cms}"
+BACKUP_GIT_SUBDIR="${BACKUP_GIT_SUBDIR:-backups/hovi-cms}"
 BACKUP_GIT_USER_NAME="${BACKUP_GIT_USER_NAME:-}"
 BACKUP_GIT_USER_EMAIL="${BACKUP_GIT_USER_EMAIL:-}"
 
+resolve_path() {
+  local value="$1"
+  if [[ "$value" = /* ]]; then
+    echo "$value"
+  else
+    echo "$PROJECT_ROOT/$value"
+  fi
+}
+
+BACKUP_LOCAL_DIR="$(resolve_path "$BACKUP_LOCAL_DIR")"
+BACKUP_TMP_DIR="$(resolve_path "$BACKUP_TMP_DIR")"
+BACKUP_GIT_DIR="$(resolve_path "$BACKUP_GIT_DIR")"
+
 if [[ -z "$BACKUP_GIT_REMOTE" ]]; then
-  echo "[backup] ERROR: BACKUP_GIT_REMOTE is empty. Please set it in .env"
-  exit 1
+  BACKUP_TARGET_MODE="repo"
+  echo "[backup] INFO: BACKUP_GIT_REMOTE is empty. Using current repository as backup target."
+else
+  BACKUP_TARGET_MODE="remote"
 fi
 
-for cmd in docker git tar gzip sha256sum; do
+for cmd in docker tar gzip sha256sum; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "[backup] ERROR: Missing required command: $cmd"
     exit 1
   fi
 done
+
+if ! command -v git >/dev/null 2>&1; then
+  echo "[backup] ERROR: Missing required command: git"
+  exit 1
+fi
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 run_tmp_dir="$BACKUP_TMP_DIR/$timestamp"
@@ -121,7 +141,21 @@ prune_old_dirs() {
 
 prune_old_dirs "$BACKUP_LOCAL_DIR" "$BACKUP_KEEP_COUNT"
 
-ensure_backup_repo() {
+if [[ "$BACKUP_TARGET_MODE" = "repo" ]]; then
+  if ! git -C "$PROJECT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "[backup] ERROR: Project directory is not a git repository: $PROJECT_ROOT"
+    exit 1
+  fi
+
+  backup_git_worktree="$PROJECT_ROOT"
+  backup_push_branch="$(git -C "$PROJECT_ROOT" branch --show-current || true)"
+  if [[ -z "$backup_push_branch" ]]; then
+    backup_push_branch="$BACKUP_GIT_BRANCH"
+  fi
+else
+  backup_git_worktree="$BACKUP_GIT_DIR"
+  backup_push_branch="$BACKUP_GIT_BRANCH"
+
   if [[ ! -d "$BACKUP_GIT_DIR/.git" ]]; then
     rm -rf "$BACKUP_GIT_DIR"
     if git clone --branch "$BACKUP_GIT_BRANCH" --single-branch "$BACKUP_GIT_REMOTE" "$BACKUP_GIT_DIR" >/dev/null 2>&1; then
@@ -135,30 +169,35 @@ ensure_backup_repo() {
   git -C "$BACKUP_GIT_DIR" fetch origin "$BACKUP_GIT_BRANCH" >/dev/null 2>&1 || true
   git -C "$BACKUP_GIT_DIR" checkout "$BACKUP_GIT_BRANCH" >/dev/null 2>&1 || git -C "$BACKUP_GIT_DIR" checkout -B "$BACKUP_GIT_BRANCH"
   git -C "$BACKUP_GIT_DIR" pull --rebase origin "$BACKUP_GIT_BRANCH" >/dev/null 2>&1 || true
+fi
 
-  if [[ -n "$BACKUP_GIT_USER_NAME" ]]; then
-    git -C "$BACKUP_GIT_DIR" config user.name "$BACKUP_GIT_USER_NAME"
-  fi
+if [[ -n "$BACKUP_GIT_USER_NAME" ]]; then
+  git -C "$backup_git_worktree" config user.name "$BACKUP_GIT_USER_NAME"
+fi
 
-  if [[ -n "$BACKUP_GIT_USER_EMAIL" ]]; then
-    git -C "$BACKUP_GIT_DIR" config user.email "$BACKUP_GIT_USER_EMAIL"
-  fi
-}
+if [[ -n "$BACKUP_GIT_USER_EMAIL" ]]; then
+  git -C "$backup_git_worktree" config user.email "$BACKUP_GIT_USER_EMAIL"
+fi
 
-ensure_backup_repo
-
-backup_repo_target="$BACKUP_GIT_DIR/$BACKUP_GIT_SUBDIR"
+backup_repo_target="$backup_git_worktree/$BACKUP_GIT_SUBDIR"
 mkdir -p "$backup_repo_target/$timestamp"
 cp -a "$run_output_dir/." "$backup_repo_target/$timestamp/"
 
 prune_old_dirs "$backup_repo_target" "$BACKUP_KEEP_COUNT"
 
-git -C "$BACKUP_GIT_DIR" add "$BACKUP_GIT_SUBDIR"
-if git -C "$BACKUP_GIT_DIR" diff --cached --quiet; then
+git -C "$backup_git_worktree" add "$BACKUP_GIT_SUBDIR"
+if git -C "$backup_git_worktree" diff --cached --quiet; then
   echo "[backup] No changes to commit."
 else
-  git -C "$BACKUP_GIT_DIR" commit -m "backup: $timestamp"
-  git -C "$BACKUP_GIT_DIR" push origin "$BACKUP_GIT_BRANCH"
+  git -C "$backup_git_worktree" commit -m "backup: $timestamp"
+
+  if git -C "$backup_git_worktree" remote get-url origin >/dev/null 2>&1; then
+    git -C "$backup_git_worktree" push origin "$backup_push_branch"
+  else
+    echo "[backup] WARN: No origin remote configured; skipped push."
+  fi
 fi
 
+echo "[backup] Local backup saved at: $run_output_dir"
+echo "[backup] Repository snapshot path: $BACKUP_GIT_SUBDIR/$timestamp"
 echo "[backup] Done: $timestamp"

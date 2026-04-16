@@ -7,12 +7,13 @@ cd "$PROJECT_ROOT"
 usage() {
   cat <<'EOF'
 Usage:
-  bash scripts/backup/restore_backup.sh [latest|TIMESTAMP] [--source local|git] [--yes] [--dry-run]
+  bash scripts/backup/restore_backup.sh [latest|TIMESTAMP] [--source local|repo|git] [--yes] [--dry-run]
 
 Examples:
+  bash scripts/backup/restore_backup.sh latest --source repo --yes
   bash scripts/backup/restore_backup.sh latest --source git --yes
   bash scripts/backup/restore_backup.sh 20260416T013256Z --source local --yes
-  bash scripts/backup/restore_backup.sh latest --source git --dry-run
+  bash scripts/backup/restore_backup.sh latest --source repo --dry-run
 EOF
 }
 
@@ -59,9 +60,9 @@ BACKUP_LOCAL_DIR="$(resolve_path "${BACKUP_LOCAL_DIR:-.local-backups}")"
 BACKUP_GIT_REMOTE="${BACKUP_GIT_REMOTE:-}"
 BACKUP_GIT_BRANCH="${BACKUP_GIT_BRANCH:-main}"
 BACKUP_GIT_DIR="$(resolve_path "${BACKUP_GIT_DIR:-.backup-repo}")"
-BACKUP_GIT_SUBDIR="${BACKUP_GIT_SUBDIR:-hovi-cms}"
+BACKUP_GIT_SUBDIR="${BACKUP_GIT_SUBDIR:-backups/hovi-cms}"
 BACKUP_ASSET_PATHS="${BACKUP_ASSET_PATHS:-public/uploads storage/app/public}"
-RESTORE_SOURCE="${BACKUP_RESTORE_SOURCE:-local}"
+RESTORE_SOURCE="${BACKUP_RESTORE_SOURCE:-repo}"
 RESTORE_TIMESTAMP="${BACKUP_RESTORE_TIMESTAMP:-latest}"
 
 FORCE_NO_CONFIRM="false"
@@ -83,7 +84,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --source)
-      [[ $# -lt 2 ]] && { echo "[restore] ERROR: --source requires value local|git"; exit 1; }
+      [[ $# -lt 2 ]] && { echo "[restore] ERROR: --source requires value local|repo|git"; exit 1; }
       RESTORE_SOURCE="$2"
       shift 2
       ;;
@@ -108,8 +109,8 @@ if [[ -n "$TIMESTAMP_ARG" ]]; then
   RESTORE_TIMESTAMP="$TIMESTAMP_ARG"
 fi
 
-if [[ "$RESTORE_SOURCE" != "local" && "$RESTORE_SOURCE" != "git" ]]; then
-  echo "[restore] ERROR: Invalid source '$RESTORE_SOURCE'. Use local or git."
+if [[ "$RESTORE_SOURCE" != "local" && "$RESTORE_SOURCE" != "repo" && "$RESTORE_SOURCE" != "git" ]]; then
+  echo "[restore] ERROR: Invalid source '$RESTORE_SOURCE'. Use local, repo or git."
   exit 1
 fi
 
@@ -127,9 +128,13 @@ if [[ "$RESTORE_SOURCE" = "git" ]]; then
   fi
 
   if [[ -z "$BACKUP_GIT_REMOTE" ]]; then
-    echo "[restore] ERROR: BACKUP_GIT_REMOTE is empty for git source"
-    exit 1
+    echo "[restore] WARN: BACKUP_GIT_REMOTE is empty. Fallback to repo source."
+    RESTORE_SOURCE="repo"
   fi
+
+fi
+
+if [[ "$RESTORE_SOURCE" = "git" ]]; then
 
   if [[ ! -d "$BACKUP_GIT_DIR/.git" ]]; then
     rm -rf "$BACKUP_GIT_DIR"
@@ -148,6 +153,8 @@ fi
 
 if [[ "$RESTORE_SOURCE" = "git" ]]; then
   base_dir="$BACKUP_GIT_DIR/$BACKUP_GIT_SUBDIR"
+elif [[ "$RESTORE_SOURCE" = "repo" ]]; then
+  base_dir="$PROJECT_ROOT/$BACKUP_GIT_SUBDIR"
 else
   base_dir="$BACKUP_LOCAL_DIR"
 fi
@@ -208,10 +215,17 @@ echo "[restore] Restoring database..."
 gzip -dc "$db_dump_file" | docker compose exec -T mysql sh -lc 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 
 echo "[restore] Restoring assets..."
+container_project_root="/var/www/html"
+container_assets_archive="${assets_archive_file/#$PROJECT_ROOT/$container_project_root}"
+
+container_cleanup_cmd=""
 for relative_path in $BACKUP_ASSET_PATHS; do
-  rm -rf "$PROJECT_ROOT/$relative_path"
+  if [[ -n "$container_cleanup_cmd" ]]; then
+    container_cleanup_cmd+=" "
+  fi
+  container_cleanup_cmd+="'$container_project_root/$relative_path'"
 done
 
-tar -xzf "$assets_archive_file" -C "$PROJECT_ROOT"
+docker compose exec -T app sh -lc "rm -rf $container_cleanup_cmd && tar -xzf '$container_assets_archive' -C '$container_project_root'"
 
 echo "[restore] Done: $RESTORE_TIMESTAMP"

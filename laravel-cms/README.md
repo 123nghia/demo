@@ -103,14 +103,15 @@ Two scripts are provided:
 
 ### 1) Configure `.env`
 
-Set at least:
+Default behavior:
 
-- `BACKUP_GIT_REMOTE`: SSH/HTTPS URL of backup repository
+- If `BACKUP_GIT_REMOTE` is empty, backups are stored inside this repository at `BACKUP_GIT_SUBDIR` and pushed to current repo remote.
+- If `BACKUP_GIT_REMOTE` is set, backups are pushed to that separate backup repository.
 
 Optional settings:
 
 - `BACKUP_GIT_BRANCH` (default `main`)
-- `BACKUP_GIT_SUBDIR` (default `hovi-cms`)
+- `BACKUP_GIT_SUBDIR` (default `backups/hovi-cms`)
 - `BACKUP_KEEP_COUNT` (default `56` backups, ~14 days if 6-hour interval)
 - `BACKUP_ASSET_PATHS` (default `public/uploads storage/app/public`)
 - `BACKUP_CRON_EXPR` (default `0 */6 * * *`)
@@ -127,9 +128,9 @@ Run once on server:
 
 ### 4) Restore from backup
 
-Restore latest snapshot from backup Git repository:
+Restore latest snapshot from current repository backup folder:
 
-`bash scripts/backup/restore_backup.sh latest --source git --yes`
+`bash scripts/backup/restore_backup.sh latest --source repo --yes`
 
 Restore a specific snapshot from local backups:
 
@@ -137,10 +138,10 @@ Restore a specific snapshot from local backups:
 
 Dry run (validate selected snapshot without applying changes):
 
-`bash scripts/backup/restore_backup.sh latest --source git --dry-run`
+`bash scripts/backup/restore_backup.sh latest --source repo --dry-run`
 
 Notes:
 
-- Ensure server has push permission to `BACKUP_GIT_REMOTE` (SSH key or token).
+- Ensure repository remote has push permission (or set `BACKUP_GIT_REMOTE` to a dedicated backup repo).
 - Restore will overwrite database and configured asset paths.
 - Local temporary/working backup directories are ignored by Git.
