@@ -28,6 +28,7 @@ class SiteSetting extends Model
             'header_logo' => '/theme/logoMenuRight1.png',
             'footer_logo' => '/theme/logofooter.png',
             'favicon' => '/theme/logohome.png',
+            'apple_touch_icon' => '/theme/logohome.png',
 
             'seo_default_title' => 'HOVI Việt Nam | Thiết Kế & Thi Công Cảnh Quan, Sân Vườn Cao Cấp',
             'seo_default_description' => 'HOVI Việt Nam chuyên thiết kế, thi công cảnh quan và sân vườn cao cấp cho biệt thự, penthouse và khu đô thị.',
@@ -35,6 +36,7 @@ class SiteSetting extends Model
             'seo_robots' => 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
             'seo_canonical_base' => rtrim((string) config('app.url'), '/'),
             'seo_og_image' => '/theme/logohome.png',
+            'seo_google_site_verification' => null,
 
             'footer_company_name' => 'CÔNG TY TNHH HOVI VIỆT NAM',
             'footer_tax_code' => '2301198445',

@@ -67,7 +67,7 @@
                     <article class="category-card">
                         <a href="{{ url('/' . $detailPage->slug) }}" rel="noreferrer noopener">
                             <img src="{{ $resolveImage($detailPage->thumbnail_image, $resolveImage($project->cover_image)) }}"
-                                alt="{{ $detailPage->title }}">
+                                alt="{{ $detailPage->title }}" loading="lazy" decoding="async">
                             <h3>{{ $detailPage->title }}</h3>
                         </a>
                     </article>
@@ -86,7 +86,7 @@
                     @foreach ($videos as $video)
                         @php
                             $videoHref = !empty($video->slug)
-                                ? url('/' . $video->slug)
+                                ? route('site.video.show', ['slug' => $video->slug])
                                 : $resolveLink($video->video_url);
                             $openInNewTab = empty($video->slug);
                         @endphp
@@ -94,7 +94,7 @@
                             <a href="{{ $videoHref }}" rel="noreferrer noopener"
                                 @if ($openInNewTab) target="_blank" @endif>
                                 <img src="{{ $resolveImage($video->thumbnail_image, $resolveImage($project->cover_image)) }}"
-                                    alt="{{ $video->title }}">
+                                    alt="{{ $video->title }}" loading="lazy" decoding="async">
                                 <h3>{{ $video->title }}</h3>
                             </a>
                         </article>
@@ -116,7 +116,7 @@
                         <article class="category-card category-card--blog">
                             <a href="{{ $resolveLink($blog->target_url) }}" rel="noreferrer noopener" target="_blank">
                                 <img src="{{ $resolveImage($blog->thumbnail_image, $resolveImage($project->cover_image)) }}"
-                                    alt="{{ $blog->title }}">
+                                    alt="{{ $blog->title }}" loading="lazy" decoding="async">
                                 <h3>{{ $blog->title }}</h3>
                             </a>
                         </article>

@@ -52,7 +52,8 @@
                 <p class="eyebrow">{{ data_get($hero, 'eyebrow', 'About Us') }}</p>
                 <h1>{{ data_get($hero, 'title') }}</h1>
                 <p>{{ data_get($hero, 'description') }}</p>
-                <img src="{{ data_get($hero, 'image') }}" alt="{{ data_get($hero, 'image_alt', 'About HOVI') }}">
+                <img src="{{ data_get($hero, 'image') }}" alt="{{ data_get($hero, 'image_alt', 'About HOVI') }}"
+                    loading="eager" fetchpriority="high" decoding="async">
             </section>
         @endif
 
@@ -62,7 +63,8 @@
                     <article class="about-card">
                         <div class="about-card__media">
                             <img src="{{ data_get($mission, 'image') }}"
-                                alt="{{ data_get($mission, 'image_alt', data_get($mission, 'title')) }}">
+                                alt="{{ data_get($mission, 'image_alt', data_get($mission, 'title')) }}" loading="lazy"
+                                decoding="async">
                         </div>
                         <div class="about-card__body">
                             <h2>{{ data_get($mission, 'title') }}</h2>
@@ -75,7 +77,8 @@
                     <article class="about-card">
                         <div class="about-card__media">
                             <img src="{{ data_get($vision, 'image') }}"
-                                alt="{{ data_get($vision, 'image_alt', data_get($vision, 'title')) }}">
+                                alt="{{ data_get($vision, 'image_alt', data_get($vision, 'title')) }}" loading="lazy"
+                                decoding="async">
                         </div>
                         <div class="about-card__body">
                             <h2>{{ data_get($vision, 'title') }}</h2>
@@ -90,7 +93,8 @@
             <section class="about-shell about-inspire">
                 <div class="about-inspire__media">
                     <img src="{{ data_get($inspiration, 'image') }}"
-                        alt="{{ data_get($inspiration, 'image_alt', data_get($inspiration, 'title')) }}">
+                        alt="{{ data_get($inspiration, 'image_alt', data_get($inspiration, 'title')) }}" loading="lazy"
+                        decoding="async">
                 </div>
                 <div class="about-inspire__body">
                     <h2>{{ data_get($inspiration, 'title') }}</h2>
@@ -116,7 +120,8 @@
                     @foreach ($coreItems as $item)
                         <article class="about-value-item">
                             <img src="{{ data_get($item, 'image') }}"
-                                alt="{{ data_get($item, 'image_alt', data_get($item, 'title')) }}">
+                                alt="{{ data_get($item, 'image_alt', data_get($item, 'title')) }}" loading="lazy"
+                                decoding="async">
                             <h3>{{ data_get($item, 'title') }}</h3>
                         </article>
                     @endforeach
@@ -142,7 +147,8 @@
                     @foreach ($manifestoItems as $item)
                         <article class="about-quote">
                             <img src="{{ data_get($item, 'image') }}"
-                                alt="{{ data_get($item, 'image_alt', 'Cam kết') }}">
+                                alt="{{ data_get($item, 'image_alt', 'Cam kết') }}" loading="lazy"
+                                decoding="async">
                             <p>{{ data_get($item, 'quote') }}</p>
                         </article>
                     @endforeach
@@ -153,7 +159,8 @@
         @if ($advantagesEnabled)
             <section class="about-shell about-advantages" id="loi-the">
                 <div class="about-advantages__media"><img src="{{ data_get($advantages, 'image') }}"
-                        alt="{{ data_get($advantages, 'image_alt', data_get($advantages, 'title')) }}"></div>
+                        alt="{{ data_get($advantages, 'image_alt', data_get($advantages, 'title')) }}" loading="lazy"
+                        decoding="async"></div>
                 <div class="about-advantages__content">
                     <h2>{{ data_get($advantages, 'title') }}</h2>
                     <ol>
@@ -168,7 +175,8 @@
         @if ($ceoEnabled)
             <section class="about-shell about-ceo" id="ceo">
                 <div class="about-ceo__media"><img src="{{ data_get($ceo, 'image') }}"
-                        alt="{{ data_get($ceo, 'image_alt', data_get($ceo, 'title')) }}">
+                        alt="{{ data_get($ceo, 'image_alt', data_get($ceo, 'title')) }}" loading="lazy"
+                        decoding="async">
                 </div>
                 <div class="about-ceo__content">
                     <p class="eyebrow">{{ data_get($ceo, 'eyebrow') }}</p>

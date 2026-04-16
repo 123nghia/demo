@@ -50,7 +50,9 @@
                 @foreach ($featuredProjects as $item)
                     <article class="category-card">
                         <a href="{{ $projectDetailUrl }}" rel="noreferrer noopener">
-                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}">
+                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}"
+                                loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async"
+                                fetchpriority="{{ $loop->first ? 'high' : 'auto' }}">
                             <h3>{{ $item['title'] }}</h3>
                         </a>
                     </article>
@@ -66,7 +68,8 @@
                 @foreach ($videos as $item)
                     <article class="category-card category-card--video">
                         <a href="{{ $projectDetailUrl }}" rel="noreferrer noopener">
-                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}">
+                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}"
+                                loading="lazy" decoding="async">
                             <h3>{{ $item['title'] }}</h3>
                         </a>
                     </article>
@@ -87,7 +90,8 @@
                 @foreach ($blogs as $item)
                     <article class="category-card category-card--blog">
                         <a href="{{ $projectDetailUrl }}" rel="noreferrer noopener">
-                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}">
+                            <img src="/theme/assets/hovi/gallery/{{ $item['image'] }}" alt="{{ $item['title'] }}"
+                                loading="lazy" decoding="async">
                             <h3>{{ $item['title'] }}</h3>
                         </a>
                     </article>

@@ -19,6 +19,10 @@ class SiteController extends Controller
         $resolvedSlug = trim((string) $slug, '/');
         $resolvedSlug = $resolvedSlug === '' ? 'home' : $resolvedSlug;
 
+        if ($resolvedSlug === 'home' && trim((string) request()->path(), '/') === 'home') {
+            return redirect()->to(url('/'), 301);
+        }
+
         if (Str::startsWith($resolvedSlug, 'admin')) {
             abort(404);
         }
@@ -40,34 +44,12 @@ class SiteController extends Controller
 
         $video = $this->resolveProjectVideo($resolvedSlug);
         if ($video instanceof ProjectVideo) {
-            return view('site.video.show', [
-                'video' => $video,
-                'relatedVideos' => $this->resolveRelatedVideos($video),
-                'page' => new Page([
-                    'name' => 'Chi tiết video',
-                    'slug' => $video->slug,
-                    'legacy_file' => 'site.video.show',
-                    'page_key' => 'video',
-                    'seo_title' => $video->seo_title ?: $video->title,
-                    'seo_description' => $video->seo_description ?: $video->description,
-                ]),
-            ]);
+            return redirect()->route('site.video.show', ['slug' => $video->slug], 301);
         }
 
         $blog = $this->resolveBlogPost($resolvedSlug);
         if ($blog instanceof Blog) {
-            return view('site.blog.show', [
-                'blog' => $blog,
-                'relatedBlogs' => $this->resolveRelatedBlogs($blog),
-                'page' => new Page([
-                    'name' => 'Chi tiết blog',
-                    'slug' => $blog->slug,
-                    'legacy_file' => 'site.blog.show',
-                    'page_key' => 'blog',
-                    'seo_title' => $blog->seo_title ?: $blog->title,
-                    'seo_description' => $blog->seo_description ?: $blog->excerpt,
-                ]),
-            ]);
+            return redirect()->route('site.blog.show', ['slug' => $blog->slug], 301);
         }
 
         $page = $this->resolvePage($resolvedSlug);

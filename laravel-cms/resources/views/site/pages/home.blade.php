@@ -138,6 +138,8 @@
 
         $cards = $cards->take(12)->values();
 
+        $lazyPlaceholderImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
         $projectsSection1 = $cards->take(6)->values();
         $hasProjectsSection1 = $projectsSection1->isNotEmpty();
         $projectsSection2 = $cards->slice(6, 6)->values();
@@ -157,7 +159,12 @@
                 });
         }
 
-        $heroBackgroundImage = $toImageUrl(data_get($heroContent, 'background_image'), '/theme/assets/hero.jpg');
+        $rawHeroBackgroundImage = trim((string) data_get($heroContent, 'background_image', ''));
+        $heroPath = ltrim((string) (parse_url($rawHeroBackgroundImage, PHP_URL_PATH) ?: $rawHeroBackgroundImage), '/');
+        if ($rawHeroBackgroundImage === '' || in_array($heroPath, ['theme/assets/hero.jpg', 'assets/hero.jpg'], true)) {
+            $rawHeroBackgroundImage = '/theme/assets/hovi/gallery/hovi-060.jpg';
+        }
+        $heroBackgroundImage = $toImageUrl($rawHeroBackgroundImage, '/theme/assets/hovi/gallery/hovi-060.jpg');
         $heroDefaultScrollTarget = $hasProjectsSection1 ? '#projects-1' : '#profile';
         $heroScrollTarget = $toHref(data_get($heroContent, 'scroll_target'), $heroDefaultScrollTarget);
 
@@ -207,8 +214,11 @@
     @endphp
 
     <main class="snap-container" id="main-scroll">
-        <section class="section hero" id="hero" data-section="hero"
-            style="background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.02) 72%, rgba(255, 255, 255, 0)), url('{{ $heroBackgroundImage }}') center center / cover no-repeat;">
+        <h1 class="sr-only">{{ $page->seo_title ?? 'HOVI Việt Nam - Thiết kế thi công cảnh quan sân vườn cao cấp' }}</h1>
+
+        <section class="section hero" id="hero" data-section="hero">
+            <img class="hero__media" src="{{ $heroBackgroundImage }}" alt="" loading="eager" fetchpriority="high"
+                decoding="async">
             <div class="hero__overlay"></div>
             <a class="scroll-cue" href="{{ $heroScrollTarget }}" aria-label="Cuộn xuống">
                 <span></span>
@@ -226,7 +236,8 @@
                             @else
                                 data-hover-redirect="{{ $project['url'] }}"
                             @endif>
-                            <img src="{{ $project['image'] }}" alt="{{ $project['title'] }}">
+                            <img src="{{ $lazyPlaceholderImage }}" data-lazy-src="{{ $project['image'] }}"
+                                alt="{{ $project['title'] }}" loading="lazy" decoding="async" fetchpriority="low">
                             <div class="project-card__content">
                                 @if ($cardAction === 'lightbox')
                                     <span class="project-card__mode">Xem ảnh</span>
@@ -251,7 +262,8 @@
                             @else
                                 data-hover-redirect="{{ $project['url'] }}"
                             @endif>
-                            <img src="{{ $project['image'] }}" alt="{{ $project['title'] }}">
+                            <img src="{{ $lazyPlaceholderImage }}" data-lazy-src="{{ $project['image'] }}"
+                                alt="{{ $project['title'] }}" loading="lazy" decoding="async" fetchpriority="low">
                             <div class="project-card__content">
                                 @if ($cardAction === 'lightbox')
                                     <span class="project-card__mode">Xem ảnh</span>
@@ -287,7 +299,9 @@
                         <div class="profile-slider__track" data-slider-track>
                             @foreach ($sliderImages as $index => $image)
                                 <div class="profile-slide">
-                                    <img src="{{ $image }}" alt="Catalog HOVI VIỆT NAM {{ $index + 1 }}">
+                                    <img src="{{ $lazyPlaceholderImage }}" data-lazy-src="{{ $image }}"
+                                        alt="Catalog HOVI VIỆT NAM {{ $index + 1 }}" loading="lazy" decoding="async"
+                                        fetchpriority="low">
                                 </div>
                             @endforeach
                         </div>
@@ -320,14 +334,16 @@
             </div>
 
             <div class="about-team">
-                <img src="{{ $aboutTeamImage }}" alt="Đội ngũ HOVI Việt Nam">
+                <img src="{{ $lazyPlaceholderImage }}" data-lazy-src="{{ $aboutTeamImage }}" alt="Đội ngũ HOVI Việt Nam"
+                    loading="lazy" decoding="async" fetchpriority="low">
             </div>
         </section>
 
         <section class="section footer-section" id="footer" data-section="footer">
             <div class="cta-grid">
                 <article class="cta-card cta-card--consult"
-                    style="background: url('{{ $consultBackgroundImage }}') center center / cover no-repeat;">
+                    data-lazy-bg="{{ $consultBackgroundImage }}"
+                    style="background-position: center center; background-size: cover; background-repeat: no-repeat;">
                     <div class="cta-card__overlay"></div>
                     <div class="cta-card__content">
                         <h3>{{ $consultTitle }}</h3>
@@ -335,7 +351,8 @@
                     </div>
                 </article>
                 <article class="cta-card cta-card--partner"
-                    style="background: url('{{ $partnerBackgroundImage }}') center center / cover no-repeat;">
+                    data-lazy-bg="{{ $partnerBackgroundImage }}"
+                    style="background-position: center center; background-size: cover; background-repeat: no-repeat;">
                     <div class="cta-card__overlay"></div>
                     <div class="cta-card__content">
                         <h3>{{ $partnerTitle }}</h3>
