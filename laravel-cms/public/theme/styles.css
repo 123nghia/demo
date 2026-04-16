@@ -937,6 +937,8 @@ body.in-gallery .header-nav {
   overflow: hidden;
   background: #121212;
   isolation: isolate;
+  aspect-ratio: 4/3;
+  width: 100%;
 }
 
 .project-card::after {
@@ -952,7 +954,7 @@ body.in-gallery .header-nav {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   background: rgba(0, 0, 0, 0.38);
   filter: brightness(1.08) contrast(0.96) saturate(1.04);
@@ -1145,11 +1147,12 @@ body.in-gallery .header-nav {
 
 .profile-slide {
   min-width: 100%;
+  aspect-ratio: 4/3;
+  width: 100%;
 }
 
 .profile-slide img {
   width: 100%;
-  aspect-ratio: 3 / 2;
   object-fit: cover;
   object-position: center;
 }
