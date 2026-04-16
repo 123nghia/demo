@@ -16,6 +16,15 @@
 
     $contactEmail = trim((string) ($siteSettings['footer_email'] ?? 'hovivietnam99@gmail.com'));
     $contactEmail = $contactEmail !== '' ? $contactEmail : 'hovivietnam99@gmail.com';
+
+    $contactAddress = trim(
+        (string) ($siteSettings['footer_address'] ?? 'SH2-12, THE MATRIX ONE - Số 1 Lê Quang Đạo, Mễ Trì, Nam Từ Liêm, Hà Nội'),
+    );
+    $contactAddress = $contactAddress !== ''
+        ? $contactAddress
+        : 'SH2-12, THE MATRIX ONE - Số 1 Lê Quang Đạo, Mễ Trì, Nam Từ Liêm, Hà Nội';
+
+    $factoryAddress = trim((string) ($siteSettings['footer_factory_address'] ?? ($siteSettings['contact_factory_address'] ?? '')));
 @endphp
 
 @section('content')
@@ -66,24 +75,28 @@
                         </p>
 
                         <article class="contact-info-item">
-                            <img src="https://www.hovi.com.vn/wp-content/uploads/2024/02/icon-footer-1.webp"
-                                alt="Địa chỉ văn phòng">
+                            <img src="/theme/assets/icons/icon-footer-1.webp" alt="" loading="lazy" decoding="async"
+                                aria-hidden="true">
                             <div>
                                 <h3>Văn phòng</h3>
-                                <p>SH2-12, THE MATRIX ONE - Số 1 Lê Quang Đạo, Mễ Trì, Nam Từ Liêm, Hà Nội</p>
+                                <p>{{ $contactAddress }}</p>
                             </div>
                         </article>
 
-                        <article class="contact-info-item">
-                            <img src="https://www.hovi.com.vn/wp-content/uploads/2024/02/icon-footer-2.webp" alt="Nhà máy">
-                            <div>
-                                <h3>Nhà máy</h3>
-                                <p>Xâm Dương, Ninh Sở, Thường Tín, Hà Nội</p>
-                            </div>
-                        </article>
+                        @if (!empty($factoryAddress))
+                            <article class="contact-info-item">
+                                <img src="/theme/assets/icons/icon-footer-2.webp" alt="" loading="lazy" decoding="async"
+                                    aria-hidden="true">
+                                <div>
+                                    <h3>Nhà máy</h3>
+                                    <p>{{ $factoryAddress }}</p>
+                                </div>
+                            </article>
+                        @endif
 
                         <article class="contact-info-item">
-                            <img src="https://www.hovi.com.vn/wp-content/uploads/2024/02/icon-footer-3.webp" alt="Email">
+                            <img src="/theme/assets/icons/icon-footer-3.webp" alt="" loading="lazy" decoding="async"
+                                aria-hidden="true">
                             <div>
                                 <h3>Email</h3>
                                 <p><a href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></p>
@@ -91,7 +104,8 @@
                         </article>
 
                         <article class="contact-info-item">
-                            <img src="https://www.hovi.com.vn/wp-content/uploads/2024/02/icon-footer-4.webp" alt="Số điện thoại">
+                            <img src="/theme/assets/icons/icon-footer-4.webp" alt="" loading="lazy" decoding="async"
+                                aria-hidden="true">
                             <div>
                                 <h3>Hotline tư vấn</h3>
                                 <p><a href="{{ $contactPhoneHref }}">{{ $contactPhone }}</a></p>
