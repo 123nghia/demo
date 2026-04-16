@@ -1,9 +1,10 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'HOVI Việt Nam | Thiết Kế & Thi Công Cảnh Quan, Sân Vườn Cao Cấp')
+@section('title', $page->seo_title ?? ($siteSettings['seo_default_title'] ?? 'HOVI Việt Nam | Thiết Kế & Thi Công Cảnh Quan, Sân Vườn Cao Cấp'))
 @section('meta_description',
     $page->seo_description ??
-    'HOVI Việt Nam chuyên thiết kế, thi công cảnh quan và sân vườn cao cấp cho biệt thự, penthouse và khu đô thị.')
+    ($siteSettings['seo_default_description'] ??
+        'HOVI Việt Nam chuyên thiết kế, thi công cảnh quan và sân vườn cao cấp cho biệt thự, penthouse và khu đô thị.'))
 @section('body_class', 'home-page')
 @section('page_key', 'home')
 @section('inline_footer', '1')

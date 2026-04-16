@@ -1,9 +1,10 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'Video HOVI Việt Nam | Công trình thực tế')
+@section('title', $page->seo_title ?? ($siteSettings['seo_default_title'] ?? 'Video HOVI Việt Nam | Công trình thực tế'))
 @section('meta_description',
     $page->seo_description ??
-    'Khám phá video công trình thực tế, chia sẻ hậu trường thiết kế thi công và kinh nghiệm triển khai từ HOVI Việt Nam.')
+    ($siteSettings['seo_default_description'] ??
+        'Khám phá video công trình thực tế, chia sẻ hậu trường thiết kế thi công và kinh nghiệm triển khai từ HOVI Việt Nam.'))
 @section('body_class', 'contact-page project-category-page')
 @section('page_key', 'video')
 

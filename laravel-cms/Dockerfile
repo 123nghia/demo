@@ -29,6 +29,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
     && (test -f database/database.sqlite || touch database/database.sqlite)
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 RUN chmod +x /usr/local/bin/entrypoint
 
 EXPOSE 9000

@@ -1,9 +1,10 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'Biệt Thự Đơn Lập M07-L14 ĐTM Dương Nội | Dự Án HOVI Việt Nam')
+@section('title', $page->seo_title ?? ($siteSettings['seo_default_title'] ?? 'Biệt Thự Đơn Lập M07-L14 ĐTM Dương Nội | Dự Án HOVI Việt Nam'))
 @section('meta_description',
     $page->seo_description ??
-    'Chi tiết dự án biệt thự đơn lập M07-L14 ĐTM Dương Nội của HOVI Việt Nam với hình ảnh phối cảnh và giải pháp thiết kế.')
+    ($siteSettings['seo_default_description'] ??
+        'Chi tiết dự án biệt thự đơn lập M07-L14 ĐTM Dương Nội của HOVI Việt Nam với hình ảnh phối cảnh và giải pháp thiết kế.'))
 @section('body_class', 'contact-page project-detail-page')
 @section('page_key', 'project')
 
@@ -76,6 +77,9 @@
             ['image' => 'hovi-024.jpg', 'title' => 'Biệt thự đơn lập K5, KĐT Starlake'],
             ['image' => 'hovi-025.jpg', 'title' => 'Biệt thự song lập Starlake Khu H'],
         ];
+
+        $contactPhoneDigits = preg_replace('/\D+/', '', (string) ($siteSettings['footer_phone'] ?? ''));
+        $contactPhoneHref = 'tel:' . ($contactPhoneDigits !== '' ? $contactPhoneDigits : '0988991635');
     @endphp
 
     <main class="detail-main">
@@ -113,7 +117,7 @@
                     <textarea name="message" rows="6" placeholder="Nội dung*" required></textarea>
                     <div class="contact-actions">
                         <button type="submit" class="contact-submit">ĐẶT LỊCH</button>
-                        <a class="contact-call-btn" href="tel:0988991635">GỌI ĐIỆN</a>
+                        <a class="contact-call-btn" href="{{ $contactPhoneHref }}">GỌI ĐIỆN</a>
                     </div>
                 </form>
             </div>

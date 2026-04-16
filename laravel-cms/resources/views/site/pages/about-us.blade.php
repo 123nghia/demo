@@ -1,9 +1,10 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'Giới Thiệu HOVI Việt Nam | Tầm Nhìn, Sứ Mệnh & Năng Lực')
+@section('title', $page->seo_title ?? ($siteSettings['seo_default_title'] ?? 'Giới Thiệu HOVI Việt Nam | Tầm Nhìn, Sứ Mệnh & Năng Lực'))
 @section('meta_description',
     $page->seo_description ??
-    'Khám phá HOVI Việt Nam, đơn vị thiết kế thi công cảnh quan và sân vườn cao cấp với quy trình rõ ràng, giá trị cốt lõi khác biệt.')
+    ($siteSettings['seo_default_description'] ??
+        'Khám phá HOVI Việt Nam, đơn vị thiết kế thi công cảnh quan và sân vườn cao cấp với quy trình rõ ràng, giá trị cốt lõi khác biệt.'))
 @section('body_class', 'contact-page about-us-page')
 @section('page_key', 'about')
 
