@@ -1,9 +1,10 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'Blog HOVI Việt Nam | Chia sẻ thiết kế cảnh quan')
+@section('title', $page->seo_title ?? ($siteSettings['seo_default_title'] ?? 'Blog HOVI Việt Nam | Chia sẻ thiết kế cảnh quan'))
 @section('meta_description',
     $page->seo_description ??
-    'Cập nhật bài viết mới từ HOVI Việt Nam: kiến thức thiết kế cảnh quan, thi công sân vườn và kinh nghiệm triển khai thực tế.')
+    ($siteSettings['seo_default_description'] ??
+        'Cập nhật bài viết mới từ HOVI Việt Nam: kiến thức thiết kế cảnh quan, thi công sân vườn và kinh nghiệm triển khai thực tế.'))
 @section('body_class', 'contact-page project-category-page')
 @section('page_key', 'blog')
 

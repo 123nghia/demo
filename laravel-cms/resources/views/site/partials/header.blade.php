@@ -10,6 +10,10 @@
             'Thiết kế và thi công cảnh quan, sân vườn cao cấp cho biệt thự và penthouse.')
     );
 
+    $headerPhoneRaw = trim((string) ($siteSettings['footer_phone'] ?? ''));
+    $headerPhoneDigits = preg_replace('/\D+/', '', $headerPhoneRaw);
+    $headerPhoneHref = !empty($headerPhoneDigits) ? 'tel:' . $headerPhoneDigits : 'tel:+84988991635';
+
     $normalizeMenuHref = function ($rawUrl, $menuPageKey = null) use ($isHomePage) {
         $url = trim((string) $rawUrl);
         if ($url === '') {
@@ -105,7 +109,7 @@
 <header class="site-header">
     <div class="header-main">
         <div class="header-actions header-actions--left">
-            <a class="icon-button" href="tel:+84988991635" aria-label="Gọi {{ $logoAlt }}">
+            <a class="icon-button" href="{{ $headerPhoneHref }}" aria-label="Gọi {{ $logoAlt }}">
                 <svg viewBox="0 0 473.806 473.806" aria-hidden="true" class="phone-icon">
                     <path
                         d="M374.456,293.506c-9.7-10.1-21.4-15.5-33.8-15.5c-12.3,0-24.1,5.3-34.2,15.4l-31.6,31.5c-2.6-1.4-5.2-2.7-7.7-4c-3.6-1.8-7-3.5-9.9-5.3c-29.6-18.8-56.5-43.3-82.3-75c-12.5-15.8-20.9-29.1-27-42.6c8.2-7.5,15.8-15.3,23.2-22.8c2.8-2.8,5.6-5.7,8.4-8.5c21-21,21-48.2,0-69.2l-27.3-27.3c-3.1-3.1-6.3-6.3-9.3-9.5c-6-6.2-12.3-12.6-18.8-18.6c-9.7-9.6-21.3-14.7-33.5-14.7s-24,5.1-34,14.7c-0.1,0.1-0.1,0.1-0.2,0.2l-34,34.3c-12.8,12.8-20.1,28.4-21.7,46.5c-2.4,29.2,6.2,56.4,12.8,74.2c16.2,43.7,40.4,84.2,76.5,127.6c43.8,52.3,96.5,93.6,156.7,122.7c23,10.9,53.7,23.8,88,26c2.1,0.1,4.3,0.2,6.3,0.2c23.1,0,42.5-8.3,57.7-24.8c0.1-0.2,0.3-0.3,0.4-0.5c5.2-6.3,11.2-12,17.5-18.1c4.3-4.1,8.7-8.4,13-12.9c9.9-10.3,15.1-22.3,15.1-34.6c0-12.4-5.3-24.3-15.4-34.3L374.456,293.506z" />

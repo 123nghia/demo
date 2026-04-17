@@ -282,6 +282,9 @@
         $embedUrl = null;
         $videoFileUrl = null;
 
+        $contactPhoneDigits = preg_replace('/\D+/', '', (string) ($siteSettings['footer_phone'] ?? ''));
+        $contactPhoneHref = 'tel:' . ($contactPhoneDigits !== '' ? $contactPhoneDigits : '0988991635');
+
         if ($resolvedVideoUrl) {
             if (preg_match('~(?:youtube\\.com/watch\\?v=|youtu\\.be/)([A-Za-z0-9_-]{6,})~i', $resolvedVideoUrl, $matches)) {
                 $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
@@ -362,7 +365,7 @@
                     <textarea name="message" rows="6" placeholder="Nội dung*" required></textarea>
                     <div class="contact-actions">
                         <button type="submit" class="contact-submit">ĐẶT LỊCH</button>
-                        <a class="contact-call-btn" href="tel:0988991635">GỌI ĐIỆN</a>
+                        <a class="contact-call-btn" href="{{ $contactPhoneHref }}">GỌI ĐIỆN</a>
                     </div>
                 </form>
             </div>

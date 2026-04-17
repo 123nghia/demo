@@ -427,6 +427,14 @@ class SiteController extends Controller
                     $image = trim((string) data_get($source, 'image'));
                 }
 
+                if ($title === '') {
+                    $title = $description;
+                }
+
+                if ($title === '') {
+                    $title = 'Dự án HOVI Việt Nam';
+                }
+
                 $resolvedUrl = null;
                 if ($action === 'link') {
                     $resolvedUrl = trim((string) data_get($source, 'url'));
@@ -435,7 +443,7 @@ class SiteController extends Controller
                     }
                 }
 
-                if ($title === '' || $image === '') {
+                if ($image === '') {
                     return null;
                 }
 

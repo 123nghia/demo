@@ -937,6 +937,8 @@ body.in-gallery .header-nav {
   overflow: hidden;
   background: #121212;
   isolation: isolate;
+  aspect-ratio: 4/3;
+  width: 100%;
 }
 
 .project-card::after {
@@ -953,12 +955,14 @@ body.in-gallery .header-nav {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  background: rgba(0, 0, 0, 0.38);
   filter: brightness(1.08) contrast(0.96) saturate(1.04);
   transition: transform 0.8s ease, filter 0.5s ease;
 }
 
 .project-card:hover img {
-  transform: scale(1.05);
+  transform: scale(1.015);
   filter: brightness(1.12) contrast(0.97) saturate(1.06);
 }
 
@@ -1034,7 +1038,7 @@ body.in-gallery .header-nav {
 
   .project-card:hover img,
   .project-card:focus-within img {
-    transform: scale(1.03);
+    transform: scale(1.005);
     filter: brightness(0.74) contrast(1.02) saturate(1.02);
   }
 
@@ -1149,12 +1153,14 @@ body.in-gallery .header-nav {
 
 .profile-slide {
   min-width: 100%;
+  aspect-ratio: 4/3;
+  width: 100%;
 }
 
 .profile-slide img {
   width: 100%;
-  aspect-ratio: 3 / 2;
   object-fit: cover;
+  object-position: center;
 }
 
 .profile-slider__controls {
@@ -1425,13 +1431,13 @@ body.contact-page .header-actions--right .menu-trigger {
 }
 
 .contact-page__title {
-  margin: 0 0 16px;
-  max-width: 10ch;
+  margin: 0 0 14px;
+  max-width: 11ch;
   font-family: var(--font-display);
-  font-size: clamp(2.45rem, 4.2vw, 4rem);
+  font-size: clamp(1.95rem, 3.2vw, 3.1rem);
   font-weight: 400;
   letter-spacing: 0.01em;
-  line-height: 0.92;
+  line-height: 0.98;
   text-wrap: balance;
 }
 
@@ -1727,10 +1733,10 @@ body.contact-page .header-actions--right .menu-trigger {
 
 .contact-info-panel h2 {
   margin: 0 0 12px;
-  max-width: 9ch;
+  max-width: 10ch;
   font-family: "SVN Aptima", serif;
-  font-size: clamp(1.95rem, 2.7vw, 2.7rem);
-  line-height: 0.96;
+  font-size: clamp(1.45rem, 2.05vw, 2.2rem);
+  line-height: 1.02;
   font-weight: 400;
   overflow-wrap: anywhere;
 }
@@ -1750,6 +1756,9 @@ body.contact-page .header-actions--right .menu-trigger {
 
 .contact-info-item img {
   width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
   filter: invert(1);
   opacity: 0.95;
   margin-top: 3px;
@@ -3639,7 +3648,7 @@ body.in-footer .section-dots {
 
   .contact-page__title {
     margin-bottom: 12px;
-    font-size: clamp(2.05rem, 11vw, 3rem);
+    font-size: clamp(1.65rem, 8.2vw, 2.35rem);
   }
 
   .contact-page__lead,
@@ -3652,7 +3661,7 @@ body.in-footer .section-dots {
   }
 
   .contact-info-panel h2 {
-    font-size: clamp(1.55rem, 7.6vw, 2.2rem);
+    font-size: clamp(1.35rem, 6.4vw, 1.9rem);
   }
 
   .contact-highlights {

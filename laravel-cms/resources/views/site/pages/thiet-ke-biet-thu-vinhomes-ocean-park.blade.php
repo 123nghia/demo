@@ -1,9 +1,10 @@
 @extends('site.layouts.app')
 
-@section('title', $page->seo_title ?? 'Thiết Kế Biệt Thự Vinhomes Ocean Park | Dự Án HOVI Việt Nam')
+@section('title', $page->seo_title ?? ($siteSettings['seo_default_title'] ?? 'Thiết Kế Biệt Thự Vinhomes Ocean Park | Dự Án HOVI Việt Nam'))
 @section('meta_description',
     $page->seo_description ??
-    'Tổng hợp các dự án thiết kế biệt thự Vinhomes Ocean Park do HOVI Việt Nam thực hiện, gồm hình ảnh, video thực tế và nội dung tư vấn.')
+    ($siteSettings['seo_default_description'] ??
+        'Tổng hợp các dự án thiết kế biệt thự Vinhomes Ocean Park do HOVI Việt Nam thực hiện, gồm hình ảnh, video thực tế và nội dung tư vấn.'))
 @section('body_class', 'contact-page project-category-page')
 @section('page_key', 'oceanpark')
 
@@ -35,6 +36,9 @@
             ['image' => 'hovi-037.jpg', 'title' => 'Biệt thự đơn lập Ngọc Trai 05-02, bản giao hưởng kiến trúc tại Vinhomes Oceanpark'],
             ['image' => 'hovi-038.jpg', 'title' => 'Top 10 biệt thự đơn lập đẹp nhất tại Vinhomes Ocean Park 1 được thiết kế bởi HOVI VIỆT NAM'],
         ];
+
+        $contactPhoneDigits = preg_replace('/\D+/', '', (string) ($siteSettings['footer_phone'] ?? ''));
+        $contactPhoneHref = 'tel:' . ($contactPhoneDigits !== '' ? $contactPhoneDigits : '0988991635');
     @endphp
 
     <main class="category-main">
@@ -118,7 +122,7 @@
                     <textarea name="message" rows="6" placeholder="Mô tả sơ bộ về công trình Anh/Chị mong muốn" required></textarea>
                     <div class="contact-actions">
                         <button type="submit" class="contact-submit">GỬI THÔNG TIN</button>
-                        <a class="contact-call-btn" href="tel:0988991635">GỌI ĐIỆN</a>
+                        <a class="contact-call-btn" href="{{ $contactPhoneHref }}">GỌI ĐIỆN</a>
                     </div>
                 </form>
             </div>

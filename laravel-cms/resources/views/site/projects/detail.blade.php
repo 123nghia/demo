@@ -25,6 +25,10 @@
 
             return '/theme/assets/hovi/gallery/' . ltrim($value, '/');
         };
+
+
+        $contactPhoneDigits = preg_replace('/\D+/', '', (string) ($siteSettings['footer_phone'] ?? ''));
+        $contactPhoneHref = 'tel:' . ($contactPhoneDigits !== '' ? $contactPhoneDigits : '0988991635');
     @endphp
 
     <main class="detail-main">
@@ -74,7 +78,7 @@
                     <textarea name="message" rows="6" placeholder="Nội dung*" required></textarea>
                     <div class="contact-actions">
                         <button type="submit" class="contact-submit">ĐẶT LỊCH</button>
-                        <a class="contact-call-btn" href="tel:0988991635">GỌI ĐIỆN</a>
+                        <a class="contact-call-btn" href="{{ $contactPhoneHref }}">GỌI ĐIỆN</a>
                     </div>
                 </form>
             </div>

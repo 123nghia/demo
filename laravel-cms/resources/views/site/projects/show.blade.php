@@ -40,6 +40,10 @@
 
             return url('/' . ltrim($value, '/'));
         };
+
+
+        $contactPhoneDigits = preg_replace('/\D+/', '', (string) ($siteSettings['footer_phone'] ?? ''));
+        $contactPhoneHref = 'tel:' . ($contactPhoneDigits !== '' ? $contactPhoneDigits : '0988991635');
     @endphp
 
     <main class="category-main">
@@ -143,7 +147,7 @@
                     <textarea name="message" rows="6" placeholder="Mô tả sơ bộ về công trình Anh/Chị mong muốn" required></textarea>
                     <div class="contact-actions">
                         <button type="submit" class="contact-submit">GỬI THÔNG TIN</button>
-                        <a class="contact-call-btn" href="tel:0988991635">GỌI ĐIỆN</a>
+                        <a class="contact-call-btn" href="{{ $contactPhoneHref }}">GỌI ĐIỆN</a>
                     </div>
                 </form>
             </div>
