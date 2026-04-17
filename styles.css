@@ -74,6 +74,7 @@ body {
 img {
   display: block;
   max-width: 100%;
+  transition: opacity 0.28s ease, filter 0.28s ease;
 }
 
 a {
@@ -88,6 +89,35 @@ input {
 
 button {
   cursor: pointer;
+}
+
+:where(
+  button,
+  .outline-button,
+  .about-cta,
+  .contact-highlight,
+  .contact-submit,
+  .contact-call-btn
+) {
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  img:hover {
+    opacity: 0.88;
+    filter: brightness(1.05);
+  }
+
+  :where(
+    button,
+    .outline-button,
+    .about-cta,
+    .contact-highlight,
+    .contact-submit,
+    .contact-call-btn
+  ):hover {
+    transform: translateY(-1px);
+  }
 }
 
 .overlay {
@@ -186,7 +216,7 @@ body.menu-open .mobile-menu {
   place-items: center;
   opacity: 0;
   transform: scale(0.92) rotate(-8deg);
-  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, color 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.22s ease, color 0.2s ease;
 }
 
 .mobile-menu__nav {
@@ -282,7 +312,7 @@ body.menu-open .mobile-menu__link:nth-child(8) {
 }
 
 .mobile-menu__close:hover {
-  transform: scale(1.04) rotate(5deg);
+  transform: translateY(-1px);
 }
 
 .mobile-menu__meta {
@@ -592,7 +622,6 @@ body.in-gallery .menu-icon {
 
 .icon-button:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .icon-button--dark {
@@ -637,7 +666,7 @@ body.in-gallery .menu-icon {
   position: relative;
   isolation: isolate;
   transform-origin: center;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), filter 0.28s ease, opacity 0.22s ease;
+  transition: transform 0.2s ease, filter 0.28s ease, opacity 0.22s ease;
 }
 
 .menu-trigger::after {
@@ -664,20 +693,20 @@ body.in-gallery .menu-icon {
 }
 
 .menu-trigger:hover {
-  transform: translateY(-1.5px) scale(1.015);
+  transform: translateY(-1px);
 }
 
 .menu-trigger:hover::after {
-  opacity: 0.45;
-  transform: scale(1);
+  opacity: 0;
+  transform: scale(0.84);
 }
 
 .menu-trigger:hover .menu-icon path {
-  fill: #fff !important;
+  fill: rgba(255, 255, 255, 0.86) !important;
 }
 
 .menu-trigger:hover .menu-icon {
-  transform: translateX(1px);
+  transform: none;
 }
 
 .menu-trigger:active,
@@ -1064,8 +1093,8 @@ body.in-gallery .header-nav {
 }
 
 .outline-button:hover {
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
+  background: transparent;
+  color: #fff;
 }
 
 .outline-button--dark {
@@ -1074,8 +1103,8 @@ body.in-gallery .header-nav {
 }
 
 .outline-button--dark:hover {
-  background: linear-gradient(#111, #111) padding-box, var(--line-gradient) border-box;
-  color: #fff;
+  background: linear-gradient(#fff, #fff) padding-box, var(--line-gradient) border-box;
+  color: #000;
 }
 
 .profile-slider {
@@ -3365,4 +3394,19 @@ body.in-footer .section-dots {
   .footer-item {
     align-items: start;
   }
+}
+
+/* Final hover normalization (outside media queries) */
+img:hover {
+  opacity: 0.88;
+  filter: brightness(1.05);
+}
+
+button:hover,
+.outline-button:hover,
+.about-cta:hover,
+.contact-highlight:hover,
+.contact-submit:hover,
+.contact-call-btn:hover {
+  transform: translateY(-1px) !important;
 }

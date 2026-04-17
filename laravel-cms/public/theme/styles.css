@@ -1108,6 +1108,12 @@ body.in-gallery .header-nav {
   letter-spacing: 0;
   font-family: "SVN Aptima", serif;
   font-size: 1rem;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.24s ease,
+    background-color 0.24s ease, color 0.24s ease;
 }
 
 .outline-button:hover {
@@ -1165,6 +1171,19 @@ body.in-gallery .header-nav {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease, background-color 0.22s ease;
+}
+
+.slider-arrow:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.58);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+.slider-arrow:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.22);
 }
 
 .about-section {
@@ -1523,7 +1542,12 @@ body.contact-page .header-actions--right .menu-trigger {
   font-family: "SVN Aptima", serif;
   font-size: 1rem;
   letter-spacing: 0.03em;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.24s ease,
+    border-color 0.24s ease, color 0.24s ease;
 }
 
 .contact-submit {
@@ -1549,7 +1573,8 @@ body.contact-page .header-actions--right .menu-trigger {
 
 .contact-submit:hover,
 .contact-call-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.012);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 
 .contact-call-btn {
@@ -1561,6 +1586,79 @@ body.contact-page .header-actions--right .menu-trigger {
 
 .contact-call-btn svg {
   fill: #fff;
+}
+
+.outline-button,
+.about-cta,
+.contact-submit,
+.contact-call-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.about-cta {
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.24s ease, color 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.outline-button::before,
+.about-cta::before,
+.contact-submit::before,
+.contact-call-btn::before {
+  content: "";
+  position: absolute;
+  top: -130%;
+  left: -28%;
+  width: 48%;
+  height: 360%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+  transform: translateX(-220%) rotate(16deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.58s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+}
+
+.outline-button:hover::before,
+.about-cta:hover::before,
+.contact-submit:hover::before,
+.contact-call-btn:hover::before,
+.outline-button:focus-visible::before,
+.about-cta:focus-visible::before,
+.contact-submit:focus-visible::before,
+.contact-call-btn:focus-visible::before {
+  opacity: 1;
+  transform: translateX(320%) rotate(16deg);
+}
+
+.outline-button:hover,
+.about-cta:hover,
+.contact-submit:hover,
+.contact-call-btn:hover {
+  transform: translateY(-2px) scale(1.012);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.outline-button:active,
+.about-cta:active,
+.contact-submit:active,
+.contact-call-btn:active,
+.outline-button.is-pressed,
+.about-cta.is-pressed,
+.contact-submit.is-pressed,
+.contact-call-btn.is-pressed {
+  transform: translateY(0) scale(0.965);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.2);
+}
+
+.outline-button:focus-visible,
+.about-cta:focus-visible,
+.contact-submit:focus-visible,
+.contact-call-btn:focus-visible,
+.slider-arrow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(145, 178, 231, 0.36), 0 12px 24px rgba(0, 0, 0, 0.24);
 }
 
 .contact-form__note {
@@ -3067,7 +3165,7 @@ body.home-image-open {
   .video-player__link:hover,
   .social-badges a:hover,
   .footer-item a:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.012);
   }
 
   .social-badges a:hover {
