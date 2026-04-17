@@ -213,6 +213,8 @@
         <script type="application/ld+json">{!! json_encode(count($baseStructuredData) === 1 ? $baseStructuredData[0] : $baseStructuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     @endif
 
+    @include('site.partials.tracking')
+
     @stack('head')
     @stack('structured_data')
 </head>
@@ -225,6 +227,12 @@
 @endphp
 
 <body class="@yield('body_class')" data-page="{{ $resolvedPageKey }}">
+    {{-- Google Tag Manager (noscript) --}}
+    @if (!empty($siteSettings['gtm_id']))
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $siteSettings['gtm_id'] }}"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    @endif
+
     <div class="overlay" data-close-overlay hidden></div>
 
     @if (session('success'))

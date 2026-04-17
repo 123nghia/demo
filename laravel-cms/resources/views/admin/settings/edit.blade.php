@@ -236,6 +236,67 @@
             </div>
         </div>
 
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">5) Tracking & Analytics</div>
+            <div class="card-body row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="gtm_id">Google Tag Manager ID</label>
+                    <input class="form-control" id="gtm_id" name="gtm_id" type="text"
+                        value="{{ $value('gtm_id') }}" placeholder="GTM-XXXXXX">
+                    <div class="form-text">Ví dụ: GTM-ABCDEFG. Lấy từ Google Tag Manager.</div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="facebook_pixel_id">Facebook Pixel ID</label>
+                    <input class="form-control" id="facebook_pixel_id" name="facebook_pixel_id" type="text"
+                        value="{{ $value('facebook_pixel_id') }}" placeholder="123456789">
+                    <div class="form-text">ID pixel Facebook để tracking conversion. Lấy từ Facebook Ads Manager.</div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="analytics_id">Google Analytics ID (GA4)</label>
+                    <input class="form-control" id="analytics_id" name="analytics_id" type="text"
+                        value="{{ $value('analytics_id') }}" placeholder="G-XXXXXXXXXX">
+                    <div class="form-text">Ví dụ: G-XXXXXXXXXX. Lấy từ Google Analytics 4.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">4) Mạng xã hội & liên hệ nhanh</div>
+            <div class="card-body row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="social_facebook">Facebook URL</label>
+                    <input class="form-control" id="social_facebook" name="social_facebook" type="text"
+                        value="{{ $value('social_facebook') }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="social_tiktok">TikTok URL</label>
+                    <input class="form-control" id="social_tiktok" name="social_tiktok" type="text"
+                        value="{{ $value('social_tiktok') }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="social_youtube">YouTube URL</label>
+                    <input class="form-control" id="social_youtube" name="social_youtube" type="text"
+                        value="{{ $value('social_youtube') }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="social_messenger">Messenger URL</label>
+                    <input class="form-control" id="social_messenger" name="social_messenger" type="text"
+                        value="{{ $value('social_messenger') }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="social_zalo">Zalo URL</label>
+                    <input class="form-control" id="social_zalo" name="social_zalo" type="text"
+                        value="{{ $value('social_zalo') }}">
+                </div>
+            </div>
+        </div>
+
         <div>
             <button class="btn btn-dark" type="submit">Lưu cấu hình</button>
         </div>

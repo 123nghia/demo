@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -68,12 +69,21 @@ class ProjectDetailPageController extends Controller
             'thumbnail_image_file' => 'nullable|image|max:5120',
             'thumbnail_click_action' => 'nullable|in:link,lightbox',
             'gallery_images_input' => 'nullable|string|max:30000',
+            'gallery_image_files' => 'nullable|array|max:80',
+            'gallery_image_files.*' => 'nullable|image|max:5120',
             'sort_order' => 'nullable|integer|min:0|max:9999',
             'is_published' => 'nullable|boolean',
         ]);
 
-        $validated['gallery_images'] = $this->parseGalleryImages((string) ($validated['gallery_images_input'] ?? ''));
-        unset($validated['gallery_images_input']);
+        $galleryImages = $this->parseGalleryImages((string) ($validated['gallery_images_input'] ?? ''));
+        $uploadedGalleryImages = $this->storeUploadedImages(
+            $request,
+            'gallery_image_files',
+            'project-detail-gallery'
+        );
+
+        $validated['gallery_images'] = $this->mergeGalleryImages($galleryImages, $uploadedGalleryImages);
+        unset($validated['gallery_images_input'], $validated['gallery_image_files']);
 
         $validated['thumbnail_click_action'] = ($validated['thumbnail_click_action'] ?? 'link') === 'lightbox'
             ? 'lightbox'
@@ -98,6 +108,8 @@ class ProjectDetailPageController extends Controller
             $validated['thumbnail_image'] = $detailPage->thumbnail_image;
         }
 
+        unset($validated['thumbnail_image_file']);
+
         $projectSlugExists = Project::query()->where('slug', $validated['slug'])->exists();
         if ($projectSlugExists) {
             throw ValidationException::withMessages([
@@ -119,6 +131,16 @@ class ProjectDetailPageController extends Controller
         return array_values(array_unique($lines));
     }
 
+    private function mergeGalleryImages(array $typedImages, array $uploadedImages): array
+    {
+        return array_values(array_unique(array_filter(
+            array_merge($typedImages, $uploadedImages),
+            function ($path) {
+                return is_string($path) && trim($path) !== '';
+            }
+        )));
+    }
+
     private function ensureOwnership(Project $project, ProjectDetailPage $detailPage): void
     {
         abort_unless((int) $detailPage->project_id === (int) $project->id, 404);
@@ -131,10 +153,38 @@ class ProjectDetailPageController extends Controller
         }
 
         $file = $request->file($fileInput);
-        if (!$file || !$file->isValid()) {
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
             return null;
         }
 
+        return $this->storeUploadedFile($file, $filenamePrefix);
+    }
+
+    private function storeUploadedImages(Request $request, string $fileInput, string $filenamePrefix): array
+    {
+        if (!$request->hasFile($fileInput)) {
+            return [];
+        }
+
+        $files = $request->file($fileInput, []);
+        if ($files instanceof UploadedFile) {
+            $files = [$files];
+        }
+
+        return collect($files)
+            ->filter(function ($file) {
+                return $file instanceof UploadedFile && $file->isValid();
+            })
+            ->map(function (UploadedFile $file) use ($filenamePrefix) {
+                return $this->storeUploadedFile($file, $filenamePrefix);
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function storeUploadedFile(UploadedFile $file, string $filenamePrefix): ?string
+    {
         $uploadDirectory = public_path('uploads/projects');
         if (!is_dir($uploadDirectory)) {
             mkdir($uploadDirectory, 0755, true);

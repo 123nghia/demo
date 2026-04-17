@@ -11,6 +11,14 @@
     if (is_null($galleryImages)) {
         $galleryImages = implode("\n", is_array($detailPage->gallery_images ?? null) ? $detailPage->gallery_images : []);
     }
+
+    $galleryPreviewImages = collect(preg_split('/\r\n|\r|\n|,/', (string) $galleryImages))
+        ->map(function ($image) {
+            return trim((string) $image);
+        })
+        ->filter()
+        ->unique()
+        ->values();
 @endphp
 
 @once
@@ -87,6 +95,49 @@
                 color: #64748b;
                 font-size: .84rem;
                 line-height: 1.35;
+            }
+
+            .gallery-upload-box {
+                border: 1px solid #dbe5f0;
+                border-radius: 12px;
+                background: linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
+                padding: .95rem;
+            }
+
+            .gallery-preview-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+                gap: .75rem;
+                margin-top: .85rem;
+            }
+
+            .gallery-preview-item {
+                border: 1px solid #dbe5f0;
+                border-radius: 10px;
+                background: #fff;
+                overflow: hidden;
+            }
+
+            .gallery-preview-item img {
+                width: 100%;
+                aspect-ratio: 4 / 3;
+                object-fit: cover;
+                background: #eef2f7;
+            }
+
+            .gallery-preview-item span {
+                display: block;
+                padding: .45rem .55rem;
+                color: #64748b;
+                font-size: .78rem;
+                line-height: 1.25;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .gallery-url-panel {
+                margin-top: .9rem;
             }
         </style>
     @endpush
@@ -181,9 +232,39 @@
     </div>
 
     <div class="col-12">
-        <label class="form-label" for="gallery_images_input">Danh sách ảnh gallery (mỗi dòng 1 ảnh)</label>
-        <textarea class="form-control" id="gallery_images_input" name="gallery_images_input" rows="8">{{ $galleryImages }}</textarea>
-        <div class="form-text">Nhập dạng <code>/theme/assets/hovi/gallery/...</code>, <code>/uploads/...</code> hoặc URL đầy đủ.</div>
+        <div class="gallery-upload-box" data-gallery-upload>
+            <label class="form-label" for="gallery_image_files">Upload ảnh gallery</label>
+            <input class="form-control" id="gallery_image_files" name="gallery_image_files[]" type="file"
+                accept="image/*" multiple data-gallery-file-input data-preview-target="gallery-selected-preview">
+            <div class="form-text">
+                Có thể chọn 1 hoặc nhiều ảnh cùng lúc. Ảnh upload mới sẽ được thêm vào cuối gallery, tối đa 5MB/mỗi ảnh.
+            </div>
+
+            <div id="gallery-selected-preview" class="gallery-preview-grid d-none" aria-live="polite"></div>
+
+            @if ($galleryPreviewImages->isNotEmpty())
+                <div class="small fw-semibold text-muted mt-3">Ảnh đang có trong gallery</div>
+                <div class="gallery-preview-grid">
+                    @foreach ($galleryPreviewImages as $galleryImage)
+                        <div class="gallery-preview-item">
+                            <img src="{{ $galleryImage }}" alt="Gallery image {{ $loop->iteration }}" loading="lazy">
+                            <span title="{{ $galleryImage }}">{{ $galleryImage }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="small text-muted mt-3">Chưa có ảnh gallery.</div>
+            @endif
+
+            <textarea class="d-none" id="gallery_images_input" name="gallery_images_input">{{ $galleryImages }}</textarea>
+
+            @error('gallery_image_files')
+                <div class="text-danger small mt-2">{{ $message }}</div>
+            @enderror
+            @error('gallery_image_files.*')
+                <div class="text-danger small mt-2">{{ $message }}</div>
+            @enderror
+        </div>
     </div>
 
     <div class="col-12">
@@ -288,6 +369,53 @@
                     showPathPreview();
                 }
 
+                function bindGalleryFilePreview(input) {
+                    if (!input || input.dataset.previewBound === '1') {
+                        return;
+                    }
+
+                    var previewTargetId = input.getAttribute('data-preview-target');
+                    var previewTarget = previewTargetId ? document.getElementById(previewTargetId) : null;
+                    if (!previewTarget) {
+                        return;
+                    }
+
+                    input.dataset.previewBound = '1';
+
+                    input.addEventListener('change', function() {
+                        previewTarget.innerHTML = '';
+
+                        var files = Array.prototype.slice.call(input.files || []);
+                        if (!files.length) {
+                            previewTarget.classList.add('d-none');
+                            return;
+                        }
+
+                        files.forEach(function(file) {
+                            var item = document.createElement('div');
+                            item.className = 'gallery-preview-item';
+
+                            var image = document.createElement('img');
+                            image.alt = file.name || 'Gallery image';
+                            image.src = URL.createObjectURL(file);
+
+                            var caption = document.createElement('span');
+                            caption.title = file.name || '';
+                            caption.textContent = (file.name || 'Ảnh mới') + ' · ' + formatBytes(file.size);
+
+                            image.onload = function() {
+                                URL.revokeObjectURL(image.src);
+                            };
+
+                            item.appendChild(image);
+                            item.appendChild(caption);
+                            previewTarget.appendChild(item);
+                        });
+
+                        previewTarget.classList.remove('d-none');
+                    });
+                }
+
                 function bindThumbnailActionOptions() {
                     var options = document.querySelectorAll('[data-thumb-option]');
                     if (!options.length) {
@@ -313,6 +441,7 @@
                 }
 
                 document.querySelectorAll('.js-project-thumbnail-field').forEach(bindThumbnailPreview);
+                document.querySelectorAll('[data-gallery-file-input]').forEach(bindGalleryFilePreview);
                 bindThumbnailActionOptions();
             });
         </script>

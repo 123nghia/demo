@@ -49,6 +49,10 @@ class SettingController extends Controller
             'social_messenger' => 'nullable|string|max:255',
             'social_zalo' => 'nullable|string|max:255',
 
+            'gtm_id' => 'nullable|string|max:255',
+            'facebook_pixel_id' => 'nullable|string|max:255',
+            'analytics_id' => 'nullable|string|max:255',
+
             'header_logo_file' => 'nullable|image|max:3072',
             'footer_logo_file' => 'nullable|image|max:3072',
             'favicon_file' => 'nullable|image|max:2048',
@@ -100,7 +104,7 @@ class SettingController extends Controller
 
         return redirect()
             ->route('admin.settings.edit')
-            ->with('success', 'Đã cập nhật cấu hình SEO, footer, logo và mạng xã hội.');
+            ->with('success', 'Đã cập nhật cấu hình SEO, footer, logo, mạng xã hội và tracking.');
     }
 
     private function replaceWithUploadedFile(Request $request, string $fileInput, string $settingKey, array &$settings): void

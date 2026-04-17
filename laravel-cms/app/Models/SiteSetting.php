@@ -51,6 +51,10 @@ class SiteSetting extends Model
             'social_youtube' => 'https://www.hovi.com.vn',
             'social_messenger' => 'https://www.hovi.com.vn/',
             'social_zalo' => 'https://zalo.me/0988991635',
+
+            'gtm_id' => null,
+            'facebook_pixel_id' => null,
+            'analytics_id' => null,
         ];
     }
 

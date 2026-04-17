@@ -144,10 +144,93 @@
             width: min(1040px, calc(100% - 40px));
             margin: 0 auto;
         }
+
+        @media (max-width: 820px) {
+            .blog-detail-main {
+                padding-top: 88px;
+            }
+
+            .blog-article-wrap,
+            .blog-related-main {
+                width: calc(100% - 20px);
+            }
+
+            .blog-article-card {
+                padding: 20px 16px;
+            }
+
+            .blog-article-title {
+                font-size: 1.52rem;
+                line-height: 1.2;
+            }
+
+            .blog-article-meta,
+            .blog-article-excerpt,
+            .blog-detail-richtext p,
+            .blog-detail-richtext li,
+            .blog-detail-richtext blockquote,
+            .blog-detail-richtext pre,
+            .blog-detail-richtext td,
+            .blog-detail-richtext th {
+                font-size: .94rem;
+                line-height: 1.72;
+            }
+
+            .blog-detail-cover {
+                max-height: none;
+                aspect-ratio: 16 / 10;
+            }
+
+            .blog-detail-richtext img {
+                margin: 12px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .blog-detail-main {
+                padding-top: 78px;
+            }
+
+            .blog-article-card {
+                padding: 18px 14px;
+            }
+
+            .blog-article-title {
+                font-size: 1.32rem;
+            }
+
+            .blog-article-project {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+                line-height: 1.35;
+                padding-block: 5px;
+            }
+        }
     </style>
 @endpush
 
 @php
+    $cleanSchema = function ($value) use (&$cleanSchema) {
+        if (is_array($value)) {
+            $cleaned = [];
+
+            foreach ($value as $key => $nestedValue) {
+                $nestedValue = $cleanSchema($nestedValue);
+
+                if (is_null($nestedValue) || $nestedValue === '' || $nestedValue === []) {
+                    continue;
+                }
+
+                $cleaned[$key] = $nestedValue;
+            }
+
+            return $cleaned;
+        }
+
+        return $value;
+    };
+
     $toAbsoluteSchemaUrl = function (?string $raw, ?string $fallback = null) {
         $value = trim((string) $raw);
         if ($value === '') {
@@ -168,14 +251,54 @@
     $blogSchemaImage = $toAbsoluteSchemaUrl($blog->thumbnail_image, '/theme/assets/hovi/gallery/hovi-036.jpg');
     $blogPublisherLogo = $toAbsoluteSchemaUrl(data_get($siteSettings ?? [], 'header_logo', '/theme/logohome.png'));
     $blogPublishedDate = $blog->published_at ?: $blog->created_at;
+    $blogUrl = route('site.blog.show', ['slug' => $blog->slug]);
+    $blogImageObject = !empty($blogSchemaImage)
+        ? [
+            '@context' => 'https://schema.org',
+            '@type' => 'ImageObject',
+            '@id' => $blogUrl . '#primaryimage',
+            'url' => $blogSchemaImage,
+            'contentUrl' => $blogSchemaImage,
+            'caption' => $blog->title,
+        ]
+        : null;
 
-    $blogStructuredData = array_filter([
+    $blogBreadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Trang chu',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => 'Blog',
+                'item' => route('site.blog.index'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $blog->title,
+                'item' => $blogUrl,
+            ],
+        ],
+    ];
+
+    $blogArticleSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'Article',
-        'mainEntityOfPage' => route('site.blog.show', ['slug' => $blog->slug]),
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => $blogUrl,
+        ],
         'headline' => $blog->title,
         'description' => trim((string) ($blog->seo_description ?: $blog->excerpt ?: $blog->title)),
-        'image' => !empty($blogSchemaImage) ? [$blogSchemaImage] : null,
+        'image' => !empty($blogImageObject) ? [$blogImageObject] : null,
+        'thumbnailUrl' => $blogSchemaImage,
         'datePublished' => $blogPublishedDate ? $blogPublishedDate->toAtomString() : null,
         'dateModified' => $blog->updated_at ? $blog->updated_at->toAtomString() : null,
         'author' => [
@@ -192,9 +315,14 @@
                 ]
                 : null,
         ],
-    ], function ($value) {
-        return !is_null($value) && $value !== '' && $value !== [];
-    });
+        'articleSection' => data_get($blog, 'project.name'),
+    ];
+
+    $blogStructuredData = $cleanSchema([
+        $blogBreadcrumbSchema,
+        $blogArticleSchema,
+        $blogImageObject,
+    ]);
 @endphp
 
 @push('structured_data')

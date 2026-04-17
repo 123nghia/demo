@@ -7,6 +7,94 @@
 @section('body_class', 'contact-page project-category-page')
 @section('page_key', 'project')
 
+@php
+    $cleanSchema = function ($value) use (&$cleanSchema) {
+        if (is_array($value)) {
+            $cleaned = [];
+
+            foreach ($value as $key => $nestedValue) {
+                $nestedValue = $cleanSchema($nestedValue);
+
+                if (is_null($nestedValue) || $nestedValue === '' || $nestedValue === []) {
+                    continue;
+                }
+
+                $cleaned[$key] = $nestedValue;
+            }
+
+            return $cleaned;
+        }
+
+        return $value;
+    };
+
+    $toAbsoluteSchemaUrl = function (?string $raw, ?string $fallback = null) {
+        $value = trim((string) $raw);
+        if ($value === '') {
+            $value = trim((string) $fallback);
+        }
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (\Illuminate\Support\Str::startsWith($value, ['http://', 'https://'])) {
+            return $value;
+        }
+
+        return url('/' . ltrim($value, '/'));
+    };
+
+    $projectUrl = url('/' . trim((string) $project->slug, '/'));
+    $projectSchemaImage = $toAbsoluteSchemaUrl($project->cover_image);
+    $projectImageObject = !empty($projectSchemaImage)
+        ? [
+            '@context' => 'https://schema.org',
+            '@type' => 'ImageObject',
+            '@id' => $projectUrl . '#primaryimage',
+            'url' => $projectSchemaImage,
+            'contentUrl' => $projectSchemaImage,
+            'caption' => $project->name,
+        ]
+        : null;
+
+    $projectStructuredData = $cleanSchema([
+        [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Trang chu',
+                    'item' => url('/'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => $project->name,
+                    'item' => $projectUrl,
+                ],
+            ],
+        ],
+        [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $project->name,
+            'description' => trim((string) ($project->seo_description ?: $project->short_description ?: $project->name)),
+            'url' => $projectUrl,
+            'image' => $projectImageObject,
+            'thumbnailUrl' => $projectSchemaImage,
+            'dateModified' => $project->updated_at ? $project->updated_at->toAtomString() : null,
+        ],
+        $projectImageObject,
+    ]);
+@endphp
+
+@push('structured_data')
+    <script type="application/ld+json">{!! json_encode($projectStructuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
+
 @section('content')
     @php
         $details = $project->detailPages ?? collect();

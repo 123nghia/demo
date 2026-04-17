@@ -10,6 +10,7 @@ use App\Models\ProjectVideo;
 use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class AdminUploadOnlyImagePreservationTest extends TestCase
@@ -297,6 +298,52 @@ class AdminUploadOnlyImagePreservationTest extends TestCase
 
         $detailPage->refresh();
         $this->assertSame('/uploads/projects/existing-detail-thumb.jpg', $detailPage->thumbnail_image);
+        $this->assertSame([
+            '/uploads/projects/gallery-1.jpg',
+            '/uploads/projects/gallery-2.jpg',
+        ], $detailPage->gallery_images);
+    }
+
+    public function test_project_detail_page_can_upload_multiple_gallery_images(): void
+    {
+        $project = Project::query()->create([
+            'name' => 'Project for gallery upload',
+            'slug' => 'project-for-gallery-upload',
+            'is_published' => true,
+        ]);
+
+        $response = $this->post(route('admin.projects.detail-pages.store', $project), [
+            'title' => 'Detail page gallery upload',
+            'slug' => 'detail-page-gallery-upload',
+            'summary' => 'Gallery upload summary',
+            'content' => 'Gallery upload content',
+            'thumbnail_click_action' => 'link',
+            'gallery_images_input' => "/uploads/projects/existing-gallery.jpg",
+            'gallery_image_files' => [
+                UploadedFile::fake()->image('gallery-a.jpg', 1200, 900),
+                UploadedFile::fake()->image('gallery-b.jpg', 1200, 900),
+            ],
+            'sort_order' => 8,
+            'is_published' => 1,
+        ]);
+
+        $response->assertRedirect(route('admin.projects.edit', $project));
+
+        $detailPage = ProjectDetailPage::query()
+            ->where('slug', 'detail-page-gallery-upload')
+            ->firstOrFail();
+
+        $galleryImages = $detailPage->gallery_images;
+
+        $this->assertCount(3, $galleryImages);
+        $this->assertSame('/uploads/projects/existing-gallery.jpg', $galleryImages[0]);
+        $this->assertStringStartsWith('/uploads/projects/project-detail-gallery-', $galleryImages[1]);
+        $this->assertStringStartsWith('/uploads/projects/project-detail-gallery-', $galleryImages[2]);
+        $this->assertFileExists(public_path(ltrim($galleryImages[1], '/')));
+        $this->assertFileExists(public_path(ltrim($galleryImages[2], '/')));
+
+        @unlink(public_path(ltrim($galleryImages[1], '/')));
+        @unlink(public_path(ltrim($galleryImages[2], '/')));
     }
 
     private function settingsPayload(array $overrides = []): array

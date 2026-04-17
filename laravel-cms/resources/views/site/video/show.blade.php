@@ -189,10 +189,97 @@
             width: min(1040px, calc(100% - 40px));
             margin: 0 auto;
         }
+
+        @media (max-width: 820px) {
+            .video-detail-main {
+                padding-top: 88px;
+            }
+
+            .video-article-wrap,
+            .video-related-main {
+                width: calc(100% - 20px);
+            }
+
+            .video-article-card {
+                padding: 20px 16px;
+            }
+
+            .video-article-title {
+                font-size: 1.52rem;
+                line-height: 1.2;
+            }
+
+            .video-article-meta,
+            .video-article-excerpt,
+            .video-detail-richtext p,
+            .video-detail-richtext li,
+            .video-detail-richtext blockquote,
+            .video-detail-richtext pre,
+            .video-detail-richtext td,
+            .video-detail-richtext th {
+                font-size: .94rem;
+                line-height: 1.72;
+            }
+
+            .video-detail-cover {
+                max-height: none;
+                aspect-ratio: 16 / 10;
+            }
+
+            .video-player {
+                width: 100%;
+            }
+
+            .video-detail-richtext img {
+                margin: 12px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-detail-main {
+                padding-top: 78px;
+            }
+
+            .video-article-card {
+                padding: 18px 14px;
+            }
+
+            .video-article-title {
+                font-size: 1.32rem;
+            }
+
+            .video-article-project {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+                line-height: 1.35;
+                padding-block: 5px;
+            }
+        }
     </style>
 @endpush
 
 @php
+    $cleanSchema = function ($value) use (&$cleanSchema) {
+        if (is_array($value)) {
+            $cleaned = [];
+
+            foreach ($value as $key => $nestedValue) {
+                $nestedValue = $cleanSchema($nestedValue);
+
+                if (is_null($nestedValue) || $nestedValue === '' || $nestedValue === []) {
+                    continue;
+                }
+
+                $cleaned[$key] = $nestedValue;
+            }
+
+            return $cleaned;
+        }
+
+        return $value;
+    };
+
     $toAbsoluteSchemaUrl = function (?string $raw, ?string $fallback = null) {
         $value = trim((string) $raw);
         if ($value === '') {
@@ -214,9 +301,45 @@
     $videoPublisherLogo = $toAbsoluteSchemaUrl(data_get($siteSettings ?? [], 'header_logo', '/theme/logohome.png'));
     $videoSourceUrl = $toAbsoluteSchemaUrl($video->video_url);
     $videoPublishedDate = $video->published_at ?: $video->created_at;
+    $videoUrl = route('site.video.show', ['slug' => $video->slug]);
+    $videoThumbnailObject = !empty($videoSchemaThumbnail)
+        ? [
+            '@context' => 'https://schema.org',
+            '@type' => 'ImageObject',
+            '@id' => $videoUrl . '#primaryimage',
+            'url' => $videoSchemaThumbnail,
+            'contentUrl' => $videoSchemaThumbnail,
+            'caption' => $video->title,
+        ]
+        : null;
 
     $videoSchemaDescription = trim((string) ($video->seo_description ?: $video->description ?: $video->title));
-    $videoStructuredData = array_filter([
+    $videoBreadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Trang chu',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => 'Video',
+                'item' => route('site.video.index'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $video->title,
+                'item' => $videoUrl,
+            ],
+        ],
+    ];
+
+    $videoObjectSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'VideoObject',
         'name' => $video->title,
@@ -226,7 +349,8 @@
         'dateModified' => $video->updated_at ? $video->updated_at->toAtomString() : null,
         'contentUrl' => $videoSourceUrl,
         'embedUrl' => $videoSourceUrl,
-        'url' => route('site.video.show', ['slug' => $video->slug]),
+        'url' => $videoUrl,
+        'image' => $videoThumbnailObject,
         'publisher' => [
             '@type' => 'Organization',
             'name' => data_get($siteSettings ?? [], 'site_name', 'HOVI Việt Nam'),
@@ -237,9 +361,13 @@
                 ]
                 : null,
         ],
-    ], function ($value) {
-        return !is_null($value) && $value !== '' && $value !== [];
-    });
+    ];
+
+    $videoStructuredData = $cleanSchema([
+        $videoBreadcrumbSchema,
+        $videoObjectSchema,
+        $videoThumbnailObject,
+    ]);
 @endphp
 
 @push('structured_data')

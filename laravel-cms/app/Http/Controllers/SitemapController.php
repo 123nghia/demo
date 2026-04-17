@@ -22,6 +22,9 @@ class SitemapController extends Controller
         $urls = $urls->merge($this->buildVideoUrls());
 
         $urls = $urls
+            ->map(function ($item) {
+                return $this->normalizeUrlItem($item);
+            })
             ->filter(function ($item) {
                 return !empty(data_get($item, 'loc'));
             })
@@ -40,6 +43,30 @@ class SitemapController extends Controller
             200,
             ['Content-Type' => 'application/xml; charset=UTF-8']
         );
+    }
+
+    private function normalizeUrlItem($item): array
+    {
+        $loc = trim((string) data_get($item, 'loc'));
+        $changefreq = trim((string) data_get($item, 'changefreq', 'monthly'));
+        $priority = data_get($item, 'priority', '0.5');
+
+        if (!in_array($changefreq, ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'], true)) {
+            $changefreq = 'monthly';
+        }
+
+        if (!is_numeric($priority)) {
+            $priority = 0.5;
+        }
+
+        $priority = max(0, min(1, (float) $priority));
+
+        return [
+            'loc' => $loc,
+            'lastmod' => data_get($item, 'lastmod'),
+            'changefreq' => $changefreq,
+            'priority' => number_format($priority, 1, '.', ''),
+        ];
     }
 
     private function buildPageUrls(): Collection

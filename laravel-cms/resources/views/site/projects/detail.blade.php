@@ -6,6 +6,111 @@
 @section('body_class', 'contact-page project-detail-page')
 @section('page_key', 'project')
 
+@php
+    $cleanSchema = function ($value) use (&$cleanSchema) {
+        if (is_array($value)) {
+            $cleaned = [];
+
+            foreach ($value as $key => $nestedValue) {
+                $nestedValue = $cleanSchema($nestedValue);
+
+                if (is_null($nestedValue) || $nestedValue === '' || $nestedValue === []) {
+                    continue;
+                }
+
+                $cleaned[$key] = $nestedValue;
+            }
+
+            return $cleaned;
+        }
+
+        return $value;
+    };
+
+    $toAbsoluteSchemaUrl = function (?string $raw, ?string $fallback = null) {
+        $value = trim((string) $raw);
+        if ($value === '') {
+            $value = trim((string) $fallback);
+        }
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (\Illuminate\Support\Str::startsWith($value, ['http://', 'https://'])) {
+            return $value;
+        }
+
+        return url('/' . ltrim($value, '/'));
+    };
+
+    $detailUrl = url('/' . trim((string) $detailPage->slug, '/'));
+    $projectUrl = url('/' . trim((string) $project->slug, '/'));
+    $detailSchemaImage = $toAbsoluteSchemaUrl($detailPage->thumbnail_image, $project->cover_image);
+    $detailImageObject = !empty($detailSchemaImage)
+        ? [
+            '@context' => 'https://schema.org',
+            '@type' => 'ImageObject',
+            '@id' => $detailUrl . '#primaryimage',
+            'url' => $detailSchemaImage,
+            'contentUrl' => $detailSchemaImage,
+            'caption' => $detailPage->title,
+        ]
+        : null;
+
+    $detailDescription = trim((string) \Illuminate\Support\Str::limit(
+        strip_tags((string) ($detailPage->summary ?: $project->short_description ?: $detailPage->title)),
+        220
+    ));
+
+    $detailStructuredData = $cleanSchema([
+        [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Trang chu',
+                    'item' => url('/'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => $project->name,
+                    'item' => $projectUrl,
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $detailPage->title,
+                    'item' => $detailUrl,
+                ],
+            ],
+        ],
+        [
+            '@context' => 'https://schema.org',
+            '@type' => 'CreativeWork',
+            'name' => $detailPage->title,
+            'description' => $detailDescription,
+            'url' => $detailUrl,
+            'image' => $detailImageObject,
+            'thumbnailUrl' => $detailSchemaImage,
+            'dateModified' => $detailPage->updated_at ? $detailPage->updated_at->toAtomString() : null,
+            'isPartOf' => [
+                '@type' => 'CollectionPage',
+                'name' => $project->name,
+                'url' => $projectUrl,
+            ],
+        ],
+        $detailImageObject,
+    ]);
+@endphp
+
+@push('structured_data')
+    <script type="application/ld+json">{!! json_encode($detailStructuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
+
 @section('content')
     @php
         $galleryImages = collect($detailPage->gallery_images ?? [])->values();
