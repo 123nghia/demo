@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Services\ImageProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -122,8 +123,9 @@ class SettingController extends Controller
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         $filename = $settingKey . '-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $destinationPath = $uploadDirectory . '/' . $filename;
 
-        $file->move($uploadDirectory, $filename);
+        ImageProcessor::processAndSave($file, $destinationPath);
 
         $settings[$settingKey] = '/uploads/settings/' . $filename;
     }

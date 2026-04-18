@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\ProjectDetailPage;
 use App\Models\ProjectVideo;
 use App\Models\SiteSetting;
+use App\Services\ImageProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -596,8 +597,9 @@ class HomeContentController extends Controller
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         $filename = $filenamePrefix . '-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $destinationPath = $uploadDirectory . '/' . $filename;
 
-        $file->move($uploadDirectory, $filename);
+        ImageProcessor::processAndSave($file, $destinationPath);
 
         return '/uploads/home/' . $filename;
     }

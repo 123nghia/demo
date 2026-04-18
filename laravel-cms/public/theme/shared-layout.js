@@ -12,12 +12,12 @@
     phoneHref: "tel:+84988991635",
     email: "hovivietnam99@gmail.com",
     emailHref: "mailto:hovivietnam99@gmail.com",
-    websiteLabel: "www.hovi.com.vn",
-    websiteHref: "https://www.hovi.com.vn",
+    websiteLabel: "hovi.com.vn",
+    websiteHref: "https://hovi.com.vn",
     address: "BT6 KĐT Việt Hưng, Long Biên, Hà Nội",
-    socialFacebook: "https://www.hovi.com.vn",
-    socialTiktok: "https://www.hovi.com.vn",
-    socialYoutube: "https://www.hovi.com.vn",
+    socialFacebook: "https://hovi.com.vn",
+    socialTiktok: "https://hovi.com.vn",
+    socialYoutube: "https://hovi.com.vn",
   };
 
   const homeSection = (sectionId) => (isHomePage ? `#${sectionId}` : `/#${sectionId}`);

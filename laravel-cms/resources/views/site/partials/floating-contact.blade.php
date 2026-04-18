@@ -1,6 +1,6 @@
 @php
     $siteSettings = $siteSettings ?? [];
-    $messengerLink = trim((string) ($siteSettings['social_messenger'] ?? 'https://www.hovi.com.vn/'));
+    $messengerLink = trim((string) ($siteSettings['social_messenger'] ?? 'https://hovi.com.vn/'));
     $zaloLink = trim((string) ($siteSettings['social_zalo'] ?? 'https://zalo.me/0988991635'));
 @endphp
 

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        if (config('app.force_https')) {
+            URL::forceScheme('https');
+        }
+
         Paginator::useBootstrap();
 
         View::composer('site.*', function ($view) {

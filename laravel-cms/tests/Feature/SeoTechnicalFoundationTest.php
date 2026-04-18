@@ -14,6 +14,30 @@ class SeoTechnicalFoundationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_theme_assets_use_forwarded_https_scheme_behind_proxy(): void
+    {
+        Page::query()->create([
+            'name' => 'Home',
+            'slug' => 'home',
+            'legacy_file' => 'home',
+            'page_key' => 'home',
+            'is_published' => true,
+        ]);
+
+        $response = $this
+            ->withServerVariables([
+                'REMOTE_ADDR' => '10.0.0.10',
+                'HTTP_X_FORWARDED_PROTO' => 'https',
+                'HTTP_X_FORWARDED_HOST' => 'hovi.com.vn',
+                'HTTP_X_FORWARDED_PORT' => '443',
+            ])
+            ->get('/');
+
+        $response->assertOk();
+        $response->assertSee('href="https://hovi.com.vn/theme/styles.css?v=', false);
+        $response->assertSee('src="https://hovi.com.vn/theme/script.js?v=', false);
+    }
+
     public function test_sitemap_xml_is_accessible_and_contains_core_urls(): void
     {
         $project = Project::query()->create([

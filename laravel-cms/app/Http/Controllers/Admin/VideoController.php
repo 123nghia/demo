@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
 use App\Models\ProjectVideo;
+use App\Services\ImageProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -153,8 +154,9 @@ class VideoController extends Controller
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         $filename = 'video-thumb-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $destinationPath = $uploadDirectory . '/' . $filename;
 
-        $file->move($uploadDirectory, $filename);
+        ImageProcessor::processAndSave($file, $destinationPath);
 
         $payload[$field] = '/uploads/videos/' . $filename;
     }

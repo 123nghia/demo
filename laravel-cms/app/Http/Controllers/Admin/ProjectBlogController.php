@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectBlog;
+use App\Services\ImageProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -108,8 +109,9 @@ class ProjectBlogController extends Controller
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         $filename = 'project-blog-thumb-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $destinationPath = $uploadDirectory . '/' . $filename;
 
-        $file->move($uploadDirectory, $filename);
+        ImageProcessor::processAndSave($file, $destinationPath);
 
         $payload[$field] = '/uploads/blogs/' . $filename;
     }

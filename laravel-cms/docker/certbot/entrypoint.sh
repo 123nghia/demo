@@ -7,16 +7,11 @@ EMAIL="${LE_EMAIL:-admin@example.com}"
 
 request_certificate() {
   echo "[certbot] Requesting certificate for ${DOMAIN}..."
-  certbot certonly \
-    --webroot \
-    -w /var/www/certbot \
-    --cert-name "$CERT_NAME" \
-    -d "$DOMAIN" \
-    --email "$EMAIL" \
-    --agree-tos \
-    --non-interactive \
-    --rsa-key-size 4096 \
-    --keep-until-expiring
+  certbot_args="--webroot -w /var/www/certbot --cert-name \"$CERT_NAME\" --email \"$EMAIL\" --agree-tos --non-interactive --rsa-key-size 4096 --keep-until-expiring"
+  for d in $DOMAIN; do
+    certbot_args="$certbot_args -d \"$d\""
+  done
+  eval "certbot certonly $certbot_args"
 }
 
 if [ ! -f "/etc/letsencrypt/live/${CERT_NAME}/fullchain.pem" ]; then

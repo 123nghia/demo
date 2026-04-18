@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
+use App\Services\ImageProcessor;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -192,8 +193,10 @@ class ProjectDetailPageController extends Controller
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         $filename = $filenamePrefix . '-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $destinationPath = $uploadDirectory . '/' . $filename;
 
-        $file->move($uploadDirectory, $filename);
+        // Process image to fix EXIF orientation
+        ImageProcessor::processAndSave($file, $destinationPath);
 
         return '/uploads/projects/' . $filename;
     }

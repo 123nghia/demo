@@ -4,16 +4,35 @@
 @php
     $siteSettings = $siteSettings ?? [];
 
-    $pageTitle = trim($__env->yieldContent('title'));
-    $pageTitle = $pageTitle !== '' ? $pageTitle : ($page->seo_title ?? ($siteSettings['seo_default_title'] ?? config('app.name')));
+    $normalizeMetaText = function ($value) {
+        $text = trim((string) $value);
 
-    $metaDescription = trim($__env->yieldContent('meta_description'));
+        for ($i = 0; $i < 3; $i++) {
+            $decoded = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if ($decoded === $text) {
+                break;
+            }
+
+            $text = $decoded;
+        }
+
+        return $text;
+    };
+
+    $pageTitle = $normalizeMetaText($__env->yieldContent('title'));
+    $pageTitle = $pageTitle !== '' ? $pageTitle : ($page->seo_title ?? ($siteSettings['seo_default_title'] ?? config('app.name')));
+    $pageTitle = $normalizeMetaText($pageTitle);
+
+    $metaDescription = $normalizeMetaText($__env->yieldContent('meta_description'));
     $metaDescription = $metaDescription !== ''
         ? $metaDescription
         : ($page->seo_description ?? ($siteSettings['seo_default_description'] ?? ''));
+    $metaDescription = $normalizeMetaText($metaDescription);
 
-    $metaKeywords = trim($__env->yieldContent('meta_keywords'));
+    $metaKeywords = $normalizeMetaText($__env->yieldContent('meta_keywords'));
     $metaKeywords = $metaKeywords !== '' ? $metaKeywords : ($siteSettings['seo_keywords'] ?? '');
+    $metaKeywords = $normalizeMetaText($metaKeywords);
 
     $robotsContent = trim($__env->yieldContent('meta_robots'));
     $robotsContent = $robotsContent !== '' ? $robotsContent : ($siteSettings['seo_robots'] ?? 'index, follow');

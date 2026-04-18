@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectDetailPage;
+use App\Services\ImageProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -133,8 +134,9 @@ class ProjectController extends Controller
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
         $filename = 'project-cover-' . date('YmdHis') . '-' . Str::random(8) . ($extension ? '.' . $extension : '');
+        $destinationPath = $uploadDirectory . '/' . $filename;
 
-        $file->move($uploadDirectory, $filename);
+        ImageProcessor::processAndSave($file, $destinationPath);
 
         $payload[$field] = '/uploads/projects/' . $filename;
     }

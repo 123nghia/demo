@@ -56,6 +56,8 @@ return [
 
     'asset_url' => env('ASSET_URL', null),
 
+    'force_https' => filter_var(env('FORCE_HTTPS', env('APP_ENV', 'production') === 'production'), FILTER_VALIDATE_BOOL),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
