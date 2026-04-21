@@ -1,3 +1,12 @@
+x-log-rotation: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-hovi-storage-limit: &hovi-storage-limit
+  size: "10G"
+
 services:
   app:
     build:
@@ -5,6 +14,7 @@ services:
       dockerfile: Dockerfile
     container_name: hovi-cms-app
     restart: unless-stopped
+    storage_opt: *hovi-storage-limit
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
@@ -26,6 +36,7 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    logging: *default-logging
 
   nginx:
     build:
@@ -33,6 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: hovi-cms-nginx
     restart: unless-stopped
+    storage_opt: *hovi-storage-limit
     depends_on:
       - app
     networks:
@@ -48,12 +60,14 @@ services:
       - certbot_www:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
     command: ["/bin/sh", "/start.sh"]
+    logging: *default-logging
 
   certbot:
     profiles: ["certbot"]
     image: certbot/certbot:latest
     container_name: hovi-cms-certbot
     restart: unless-stopped
+    storage_opt: *hovi-storage-limit
     depends_on:
       - nginx
     environment:
@@ -65,11 +79,13 @@ services:
       - certbot_certs:/etc/letsencrypt
       - ./docker/certbot/entrypoint.sh:/entrypoint.sh:ro
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    logging: *default-logging
 
   mysql:
     image: mysql:8.0
     container_name: hovi-cms-mysql
     restart: unless-stopped
+    storage_opt: *hovi-storage-limit
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-hovi_cms}
@@ -83,6 +99,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    logging: *default-logging
 
 volumes:
   mysql_data:
